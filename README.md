@@ -26,9 +26,10 @@
 
 ## 📂 Как использовать
 
-1. Откройте [[https://soulmine-web.vercel.app](https://soulmine-web-3xmk.vercel.app/)](https://soulmine-web.vercel.app)
+1. Откройте [soulmine-web](https://soulmine-web-3xmk.vercel.app/)
 2. Подключите кошелёк (Tonkeeper, Tonhub и др.)
 
 3. Найдите пару → начните звонок → зарабатывайте $LOVE!
+
 
 
