@@ -13,20 +13,18 @@ import os
 import requests
 from dotenv import load_dotenv
 
-# Настройка логирования
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.INFO
 )
 logger = logging.getLogger(__name__)
 
-# Загружаем переменные из .env
 load_dotenv()
 
 # === НАСТРОЙКИ ===
 TOKEN = os.getenv("BOT_TOKEN")
 JETTON_MASTER_ADDRESS = os.getenv("JETTON_MASTER_ADDRESS", "EQAf1n9pHB4gITeBj4VA6jYKa4QKAs7e1z5SSQY3DnYme-Yj")
-TMA_URL = "https://soulmine-web.vercel.app"
+TMA_URL = "https://soulmine-web-3xmk.vercel.app/"
 CHANNEL_ID = "@SoulMineNews"
 TONAPI_KEY = os.getenv("TONAPI_KEY", "")
 
@@ -390,4 +388,5 @@ def main() -> None:
 
 
 if __name__ == '__main__':
+
     main()
