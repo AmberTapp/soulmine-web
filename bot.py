@@ -31,7 +31,7 @@ if not TOKEN:
     raise ValueError("❌ BOT_TOKEN не установлен в .env")
 
 JETTON_MASTER_ADDRESS = os.getenv("JETTON_MASTER_ADDRESS", "EQAf1n9pHB4gITeBj4VA6jYKa4QKAs7e1z5SSQY3DnYme-Yj")
-TMA_URL = "https://soulmine-web-3xmk.vercel.app"  # Без пробелов!
+TMA_URL = "https://soulmine-web-cef9.vercel.app/"  # Без пробелов!
 CHANNEL_ID = "@SoulMineNews"
 TONAPI_KEY = os.getenv("TONAPI_KEY", "")
 DATABASE_URL = os.getenv("DATABASE_URL")
