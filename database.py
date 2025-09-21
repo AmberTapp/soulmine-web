@@ -21,27 +21,26 @@ class User(Base):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True)
-    telegram_id = Column(String, index=True, nullable=False)  # Убрали unique=True отсюда
-
+    telegram_id = Column(String, unique=True,nullable=False)  # ← Установлено unique=True
     username = Column(String, nullable=True)
-    first_name = Column(String, nullable=True)
-    ton_address = Column(String, nullable=True, unique=True)
+    first_name = Column(String,nullable=True)
+    ton_address = Column(String,nullable=True, unique=True)
     wallet_connected = Column(Boolean, default=False)
     internal_balance = Column(Float, default=0.0)
     compatibility = Column(Float, default=50.0)
-    calls_count = Column(Integer, default=0)
-    messages_count = Column(Integer, default=0)
-    level = Column(Integer, default=1)
-    referred_by = Column(String, ForeignKey('users.telegram_id'), nullable=True)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    calls_count = Column(Integer,default=0)
+    messages_count = Column(Integer,default=0)
+    level = Column(Integer,default=1)
+    referred_by = Column(String, ForeignKey('users.telegram_id'),nullable=True)
+    created_at = Column(DateTime(timezone=True),server_default=func.now())
+    updated_at = Column(DateTime(timezone=True),onupdate=func.now())
 
-    nfts = Column(JSON, default=list)
-    quests = Column(JSON, default=list)
-    call_history = Column(JSON, default=list)
-    settings = Column(JSON, default=dict)
+    nfts = Column(JSON,default=list)
+    quests = Column(JSON,default=list)
+    call_history = Column(JSON,default=list)
+    settings = Column(JSON,default=dict)
 
-    referrals = relationship("User", remote_side=[telegram_id])
+    referrals = relationship("User",remote_side=[telegram_id])
 
     # ЯВНО создаем уникальный индекс для telegram_id — ДО создания внешнего ключа
     __table_args__ = (
