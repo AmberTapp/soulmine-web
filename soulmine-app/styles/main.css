@@ -1,0 +1,387 @@
+/* Стили из исходного файла + новые стили для splash screen и main-screen */
+
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+body {
+  background: linear-gradient(135deg, #0f0f33, #00005B);
+  color: white;
+  padding: 10px;
+  min-height: 100vh;
+}
+.container { max-width: 600px; margin: 0 auto; position: relative; z-index: 10; }
+.screen { display: none; padding: 15px; }
+.screen.active { display: block; }
+.btn {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  margin: 8px 0;
+  background: #00005B;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(0, 0, 91, 0.4);
+}
+.btn.connected { background: #00d1b2; }
+.btn:hover {
+  transform: scale(1.02);
+  transition: all 0.2s;
+  box-shadow: 0 0 15px rgba(0, 0, 91, 0.6);
+}
+.nav-btn { padding: 10px; text-align: center; background: rgba(255,255,255,0.1); margin: 5px; border-radius: 8px; cursor: pointer; }
+.nav-btn.active { background: #00005B; }
+.nft-item { position: relative; width: 100px; height: 100px; margin: 10px; display: inline-block; border-radius: 10px; overflow: hidden; background: #1a1a2e; }
+.nft-img { width: 100%; height: 100%; object-fit: cover; }
+.nft-overlay { position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.7); padding: 5px; font-size: 12px; text-align: center; }
+.nft-empty { text-align: center; padding: 40px; color: #aaa; }
+.quest-item { background: rgba(255,255,255,0.1); padding: 15px; margin: 10px 0; border-radius: 10px; }
+.quest-title { font-weight: bold; margin-bottom: 5px; }
+.quest-desc { font-size: 14px; color: #ccc; margin-bottom: 8px; }
+.quest-reward { font-size: 14px; color: #00d1b2; margin-bottom: 8px; }
+.quest-progress { display: flex; align-items: center; margin-bottom: 10px; }
+.progress-bar { width: 100%; height: 10px; background: #333; border-radius: 5px; overflow: hidden; margin-right: 10px; }
+.progress-fill { height: 100%; background: #00d1b2; border-radius: 5px; transition: width 0.3s; }
+.call-record { border-bottom: 1px solid #333; padding: 10px 0; margin: 10px 0; }
+.proposal-item { background: rgba(255,255,255,0.1); padding: 15px; margin: 10px 0; border-radius: 10px; }
+.status-active { color: #ffcc00; }
+.status-passed { color: #00d1b2; }
+.status-rejected { color: #ff4757; }
+.vote-btn { background: #00005B; color: white; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer; }
+.msg { margin: 8px 0; padding: 10px; border-radius: 15px; max-width: 70%; }
+.msg-you { background: #00005B; margin-left: auto; text-align: right; }
+.msg-partner { background: rgba(255,255,255,0.2); margin-right: auto; }
+.msg-mining { font-size: 10px; opacity: 0.8; margin-top: 5px; }
+.chat-input { display: flex; margin-top: 10px; }
+.chat-input input { flex: 1; padding: 10px; border: none; border-radius: 20px; }
+.filter-btn { padding: 8px 12px; margin: 5px; background: rgba(255,255,255,0.1); border-radius: 15px; cursor: pointer; }
+.filter-btn.active { background: #00005B; }
+#ar-effects { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; overflow: hidden; }
+.modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; }
+.modal-content { background: white; padding: 30px; border-radius: 15px; text-align: center; max-width: 300px; }
+#video-modal, #searching-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1001; justify-content: center; align-items: center; }
+video { width: 100%; height: auto; border-radius: 10px; }
+.video-container { display: flex; flex-direction: column; align-items: center; }
+.video-container > div { margin: 10px; }
+#video-timer { font-size: 24px; font-weight: bold; margin: 10px; }
+#video-status { color: #00d1b2; font-size: 16px; margin: 10px; }
+#ai-advice { background: #00005B; color: white; padding: 10px; border-radius: 10px; position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 1000; display: none; }
+#ai-message { font-size: 14px; }
+.wallet-info { margin: 10px 0; font-size: 14px; }
+#partner-preview { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; display: none; margin: 15px auto; border: 3px solid #00005B; box-shadow: 0 0 15px rgba(0, 0, 91, 0.4); }
+.resource-links { text-align: center; margin: 15px 0; font-size: 14px; }
+.resource-links a { color: #00d1b2; text-decoration: none; margin: 0 8px; }
+.resource-links a:hover { text-decoration: underline; }
+
+/* Splash Screen Styles */
+.splash-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #0f0f33, #00005B);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  color: white;
+  transition: opacity 0.5s ease-out, visibility 0.5s ease-out;
+}
+
+.splash-content {
+  text-align: center;
+  animation: fadeInUp 1s ease-out;
+}
+
+.splash-logo {
+  font-size: 4rem;
+  margin-bottom: 10px;
+  animation: pulse 2s infinite;
+}
+
+.splash-title {
+  font-size: 2.5rem;
+  font-weight: bold;
+  margin: 0 0 10px 0;
+  background: linear-gradient(to right, #00D1B2, #00F0E9);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.splash-subtitle {
+  font-size: 1.1rem;
+  margin-bottom: 30px;
+  opacity: 0.9;
+}
+
+.splash-loader {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.loader-heart {
+  font-size: 1.5rem;
+  animation: bounce 1s infinite alternate;
+}
+
+.loader-heart:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.loader-heart:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+/* Анимации */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+@keyframes bounce {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(-15px);
+  }
+}
+
+/* Скрытие заставки */
+.splash-screen.fade-out {
+  opacity: 0;
+  visibility: hidden;
+}
+
+/* === Новые стили для основного экрана === */
+
+/* Герой-секция */
+.hero-section {
+  text-align: center;
+  margin-bottom: 30px;
+  padding: 20px 0;
+}
+
+.app-logo {
+  font-size: 2.8rem;
+  font-weight: bold;
+  background: linear-gradient(to right, #00D1B2, #00F0E9);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.app-slogan {
+  font-size: 1.3rem;
+  margin: 10px 0;
+  opacity: 0.9;
+}
+
+.app-desc {
+  font-size: 0.95rem;
+  margin: 5px 0 20px 0;
+  color: #ccc;
+}
+
+.zero-friction-slogan {
+  text-align: center;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #00d1b2;
+  margin: 15px 0 25px 0;
+  padding: 10px;
+  background: rgba(0, 209, 178, 0.1);
+  border-radius: 15px;
+  border: 1px solid rgba(0, 209, 178, 0.3);
+}
+
+/* Секция превью партнера (скрыта) */
+#partner-preview {
+  display: none !important;
+}
+
+/* === Стили для системы свайпов === */
+
+/* Область свайпов */
+.swipe-area {
+  position: relative;
+  width: 100%;
+  height: 400px;
+  margin: 20px 0;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 20px;
+  box-shadow: inset 0 0 20px rgba(0, 0, 91, 0.3);
+}
+
+/* Карточка пользователя */
+.swipe-card {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #0a0a2a, #1a1a2e);
+  border-radius: 15px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  user-select: none;
+  cursor: grab;
+}
+
+.swipe-card img {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid #00005B;
+  box-shadow: 0 0 20px rgba(0, 0, 91, 0.5);
+}
+
+.card-info {
+  text-align: center;
+  color: white;
+  padding: 15px;
+}
+
+.card-info h3 {
+  font-size: 1.4rem;
+  margin: 10px 0;
+  background: linear-gradient(to right, #00D1B2, #00F0E9);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.card-info p {
+  font-size: 0.95rem;
+  margin: 5px 0;
+  color: #ccc;
+}
+
+/* Placeholder */
+.placeholder-card {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  color: #aaa;
+  font-size: 1.1rem;
+  text-align: center;
+  padding: 20px;
+}
+
+/* Анимации свайпа */
+.swipe-card.swiping-right {
+  transform: translateX(150%) rotate(15deg);
+  opacity: 0.7;
+}
+
+.swipe-card.swiping-left {
+  transform: translateX(-150%) rotate(-15deg);
+  opacity: 0.7;
+}
+
+/* Фиксированные кнопки действий */
+.action-buttons-fixed {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  margin: 30px 0 10px 0;
+  padding: 15px 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+}
+
+.action-btn {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: none;
+  font-size: 1.8rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.action-btn:hover {
+  transform: scale(1.1);
+}
+
+.chat-btn {
+  background: linear-gradient(135deg, #00005B, #002A7C);
+  color: white;
+}
+
+.call-btn {
+  background: linear-gradient(135deg, #FFD700, #FFA500);
+  color: white;
+}
+
+.video-btn {
+  background: linear-gradient(135deg, #00D1B2, #00A8CC);
+  color: white;
+}
+
+/* Адаптивность */
+@media (max-width: 480px) {
+  .app-logo {
+    font-size: 2.2rem;
+  }
+
+  .app-slogan {
+    font-size: 1.1rem;
+  }
+
+  .swipe-area {
+    height: 350px;
+  }
+
+  .swipe-card img {
+    width: 120px;
+    height: 120px;
+  }
+
+  .card-info h3 {
+    font-size: 1.2rem;
+  }
+
+  .action-btn {
+    width: 50px;
+    height: 50px;
+    font-size: 1.5rem;
+  }
+}
+
+@keyframes fall-confetti {
+  to {
+    transform: translateY(100vh) rotate(360deg);
+    opacity: 0;
+  }
+}

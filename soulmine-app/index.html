@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <title>SoulMine — Web3 Знакомства</title>
+  <!-- Внешние библиотеки -->
+  <script src="https://unpkg.com/@tonconnect/sdk@latest/dist/tonconnect-sdk.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/face-api.js@1.5.0/dist/face-api.min.js"></script>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <link rel="stylesheet" href="styles/main.css">
+</head>
+<body>
+  <!-- Splash Screen -->
+  <div id="splash-screen" class="splash-screen">
+    <div class="splash-content">
+      <div class="splash-logo">💜</div>
+      <h1 class="splash-title">SoulMine</h1>
+      <p class="splash-subtitle">Web3 Знакомства с душой</p>
+      <div class="splash-loader">
+        <div class="loader-heart">❤️</div>
+        <div class="loader-heart">❤️</div>
+        <div class="loader-heart">❤️</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <!-- Основной экран -->
+    <div id="main-screen" class="screen active">
+      <!-- Логотип и заголовок -->
+      <div class="hero-section">
+        <h1 class="app-logo">💜 SoulMine</h1>
+        <p class="app-slogan">Web3 Знакомства с душой</p>
+        <p class="app-desc">Свайпайте, находите, зарабатывайте $LOVE</p>
+        <p class="zero-friction-slogan">
+          💫 Никакой регистрации — просто подключите кошелек!
+        </p>
+      </div>
+
+      <!-- Область свайпов (основной контент) -->
+      <div id="swipe-area" class="swipe-area">
+        <!-- Карточки будут динамически добавляться сюда -->
+        <div class="placeholder-card">
+          <p>Подключите кошелек, чтобы начать свайпать ❤️</p>
+        </div>
+      </div>
+
+      <!-- Фиксированные кнопки действий (внизу) -->
+      <div class="action-buttons-fixed">
+        <button class="action-btn chat-btn" onclick="openChatWithCurrent()" title="Написать">
+          💬
+        </button>
+        <button class="action-btn call-btn" onclick="startVoiceCallWithCurrent()" title="Позвонить">
+          📞
+        </button>
+        <button class="action-btn video-btn" onclick="startVideoCallWithCurrent()" title="Видеозвонок">
+          📹
+        </button>
+      </div>
+
+      <!-- Навигация -->
+      <div style="margin: 20px 0; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+        <button class="nav-btn" onclick="showScreen('profile')">👤 Профиль</button>
+        <button class="nav-btn" onclick="showScreen('quests')">🎯 Квесты</button>
+        <button class="nav-btn" onclick="showScreen('history')">📜 История</button>
+        <button class="nav-btn" onclick="showScreen('dao')">🏛️ DAO</button>
+      </div>
+
+      <!-- Ресурсы -->
+      <div class="resource-links">
+        <a href="https://t.me/LoveSoulMine_Bot" target="_blank">💬 Бот</a> |
+        <a href="https://t.me/SoulMineNews" target="_blank">📣 Канал</a> |
+        <a href="https://tonviewer.com/EQAf1n9pHB4gITeBj4VA6jYKa4QKAs7e1z5SSQY3DnYme-Yj" target="_blank">$LOVE</a>
+      </div>
+
+      <!-- Футер с кнопкой кошелька -->
+      <div class="footer-wallet">
+        <button id="ton-connect-button" class="wallet-btn">
+          <span class="wallet-icon">🔐</span>
+          <span class="wallet-text">Подключить TON Wallet</span>
+        </button>
+        <div id="wallet-info" class="wallet-info" style="display:none; margin-top: 8px; font-size: 12px;">
+          <strong>Адрес:</strong> <span id="wallet-address-display">—</span>
+        </div>
+        <p class="balance-display">Баланс: <strong id="profile-balance">Загрузка...</strong></p>
+      </div>
+
+      <div style="margin-top: 20px; font-size: 11px; color: #aaa; text-align: center;">
+        <p>Создано для TON — безопасно, приватно, с майнингом</p>
+      </div>
+    </div>
+
+    <!-- Чат -->
+    <div id="chat-screen" class="screen">
+      <h2>💬 Чат</h2>
+      <div id="messages" style="height: 400px; overflow-y: scroll; margin-bottom: 10px; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 10px;"></div>
+      <div class="chat-input">
+        <input type="text" placeholder="Напишите сообщение..." onkeypress="sendMsg(event)">
+        <button onclick="sendMsg()">Отправить</button>
+      </div>
+      <div style="margin-top: 15px;">
+        <button class="btn" onclick="showScreen('main-screen')">← Назад</button>
+      </div>
+    </div>
+
+    <!-- Профиль -->
+    <div id="profile" class="screen">
+      <h2>👤 Профиль</h2>
+      <p>Адрес: <code id="profile-address">—</code></p>
+      <p>Баланс: <strong id="profile-balance-profile">—</strong></p>
+      <h3>Ваши NFT</h3>
+      <div id="nft-container-profile"></div>
+      <h3>Совместные NFT</h3>
+      <div id="couple-nft-container-profile"></div>
+      <button class="btn" onclick="showScreen('main-screen')">← Назад</button>
+    </div>
+
+    <!-- Квесты -->
+    <div id="quests" class="screen">
+      <h2>🎯 Квесты</h2>
+      <p>Прогресс: <strong id="quests-progress">0/3</strong></p>
+      <div id="quests-list"></div>
+      <button class="btn" onclick="showScreen('main-screen')">← Назад</button>
+    </div>
+
+    <!-- История звонков -->
+    <div id="history" class="screen">
+      <h2>📜 История звонков</h2>
+      <div id="call-history-list"></div>
+      <button class="btn" onclick="showScreen('main-screen')">← Назад</button>
+    </div>
+
+    <!-- DAO -->
+    <div id="dao" class="screen">
+      <h2>🏛️ DAO — Гражданин SoulMine</h2>
+      <p>Ваш уровень: <strong id="citizen-nft-level">Не выдано. Совершите первый звонок!</strong></p>
+      <h3>Предложения</h3>
+      <div id="proposals-list"></div>
+      <button class="btn" onclick="createProposal()">➕ Создать предложение</button>
+      <button class="btn" onclick="showScreen('main-screen')">← Назад</button>
+    </div>
+
+    <!-- Модалка NFT -->
+    <div id="nft-modal" class="modal">
+      <div class="modal-content">
+        <h2>🎉 Новый NFT!</h2>
+        <p style="font-size:4em; margin:10px;">"<span id="nft-name">Название</span>"</p>
+        <button onclick="closeModal()" style="padding:10px 20px; background:#00005B; color:white; border:none; border-radius:8px;">Закрыть</button>
+      </div>
+    </div>
+
+    <!-- Модалка поиска партнёра -->
+    <div id="searching-modal" class="modal">
+      <div class="modal-content">
+        <h2>🔍 Поиск собеседника...</h2>
+        <p>Подождите, мы подберём вам идеальную пару ❤️</p>
+      </div>
+    </div>
+
+    <!-- Модалка выбора параметров для AI-поиска -->
+    <div id="ai-params-modal" class="modal">
+      <div class="modal-content" style="max-width: 90%; padding: 20px;">
+        <h2 style="margin-bottom: 20px;">✨ Настройте ваш AI SoulMatch</h2>
+        
+        <div style="margin-bottom: 20px; text-align: left;">
+          <label style="display: block; margin-bottom: 5px; font-weight: bold;">Возрастной диапазон:</label>
+          <select id="age-range" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #00005B;">
+            <option value="18-25">18-25 лет</option>
+            <option value="25-35">25-35 лет</option>
+            <option value="35-45">35-45 лет</option>
+            <option value="45+">45+ лет</option>
+          </select>
+        </div>
+
+        <div style="margin-bottom: 20px; text-align: left;">
+          <label style="display: block; margin-bottom: 5px; font-weight: bold;">Интересы (выберите до 3):</label>
+          <div id="interests-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <!-- Интересы будут динамически загружены -->
+          </div>
+        </div>
+
+        <div style="margin-bottom: 20px; text-align: left;">
+          <label style="display: block; margin-bottom: 5px; font-weight: bold;">Цель знакомства:</label>
+          <select id="goal" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #00005B;">
+            <option value="friendship">Дружба</option>
+            <option value="romance">Романтика</option>
+            <option value="chat">Просто пообщаться</option>
+            <option value="mining">Майнить $LOVE вместе</option>
+          </select>
+        </div>
+
+        <button onclick="saveAIParams()" style="padding: 12px 24px; background: #00005B; color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; width: 100%;">Сохранить и найти пару 💘</button>
+      </div>
+    </div>
+
+    <!-- Видеозвонок -->
+    <div id="video-modal" class="modal">
+      <div class="video-container">
+        <div>
+          <video id="local-video" autoplay muted playsinline></video>
+          <video id="remote-video" autoplay playsinline></video>
+        </div>
+        <div id="video-timer">00:00</div>
+        <div id="video-status">Ожидание соединения...</div>
+        <div style="margin-top: 10px;">
+          <button class="btn" onclick="endVideoCall()">⏹️ Завершить звонок</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- AR-эффекты -->
+    <div id="ar-effects"></div>
+
+    <!-- AR-фильтры -->
+    <div style="display:none; margin-top: 10px; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 9999;">
+      <button class="filter-btn" onclick="applyFilter('none')">❌ Выключить</button>
+      <button class="filter-btn" onclick="applyFilter('hearts')">❤️ Сердца</button>
+      <button class="filter-btn" onclick="applyFilter('ton')">💎 TON</button>
+      <button class="filter-btn" onclick="applyFilter('party')">🎉 Вечеринка</button>
+      <button class="filter-btn" onclick="captureMoment()">📸 Захватить</button>
+    </div>
+  </div>
+
+  <!-- Наши скрипты -->
+  <script src="scripts/utils.js"></script>
+  <script src="scripts/ton.js"></script>
+  <script src="scripts/quests.js"></script>
+  <script src="scripts/dao.js"></script>
+  <script src="scripts/video-call.js"></script>
+  <script src="scripts/chat.js"></script>
+  <script src="scripts/main.js"></script>
+</body>
+</html>
