@@ -6,8 +6,11 @@
   <title>SoulMine — Web3 Знакомства с $LOVE</title>
   <link rel="stylesheet" href="./styles/main.css">
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- TonConnect UI -->
   <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+  <!-- Canvas Confetti -->
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <!-- Face API -->
   <script src="https://unpkg.com/face-api.js@0.22.2/dist/face-api.min.js"></script>
 </head>
 <body>
@@ -39,20 +42,24 @@
       <!-- 🛠️ РАБОЧАЯ КНОПКА ПОДКЛЮЧЕНИЯ КОШЕЛЁКА -->
       <div id="ton-connect-button-container" style="margin: 20px 0;"></div>
 
-      <!-- 🚀 КНОПКА ПЕРЕХОДА В БОТА -->
-      <button onclick="window.Telegram?.WebApp.openLink('https://t.me/LoveSoulMine_Bot')" 
-              class="btn btn-secondary" style="width: 100%; margin: 20px 0;">
-        🤖 Перейти в Telegram-бота
-      </button>
-
-      <!-- 📢 КНОПКА ПОДПИСКИ НА КАНАЛ -->
-      <button onclick="window.Telegram?.WebApp.openLink('https://t.me/SoulMineNews')" 
-              class="btn btn-secondary" style="width: 100%; margin: 20px 0;">
-        📣 Подписаться на канал
-      </button>
+      <!-- 🚀 КНОПКИ ССЫЛОК НА БОТА, КАНАЛ И СУППОРТ -->
+      <div style="display: flex; flex-direction: column; gap: 10px; margin: 20px 0;">
+        <button onclick="window.Telegram?.WebApp.openLink('https://t.me/LoveSoulMine_Bot')" 
+                class="btn btn-secondary" style="width: 100%; padding: 12px; font-size: 16px;">
+          🤖 Перейти в Telegram-бота
+        </button>
+        <button onclick="window.Telegram?.WebApp.openLink('https://t.me/SoulMineNews')" 
+                class="btn btn-secondary" style="width: 100%; padding: 12px; font-size: 16px;">
+          📣 Подписаться на канал
+        </button>
+        <button onclick="window.Telegram?.WebApp.openLink('https://t.me/SoulMineSupport')" 
+                class="btn btn-secondary" style="width: 100%; padding: 12px; font-size: 16px;">
+          ❓ Обратиться в суппорт
+        </button>
+      </div>
 
       <!-- 🔗 РЕФЕРАЛЬНАЯ ССЫЛКА -->
-      <button onclick="copyReferralLink()" class="btn btn-secondary" style="width: 100%; margin: 20px 0;">
+      <button onclick="copyReferralLink()" class="btn btn-secondary" style="width: 100%; margin: 20px 0; padding: 12px; font-size: 16px;">
         🌐 Скопировать реферальную ссылку
       </button>
     </div>
