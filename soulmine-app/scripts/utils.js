@@ -1,73 +1,169 @@
-// utils.js
+// utils.js — философия SoulMine: Любовь = Крипта, Совместимость = AI, DAO = Демократия
 
-// Глобальные переменные
-window.userAddress = null;
-window.isCalling = false;
-window.callStartTime = null;
-window.callTimer = null;
-window.miningInterval = null;
-window.localStream = null;
-window.peerConnection = null;
-window.dataChannel = null;
-window.ws = null;
-window.callPartnerAddress = null;
-window.isSearching = false;
-window.currentFilter = 'none';
+const appState = {
+  userAddress: null,
+  isCalling: false,
+  callStartTime: null,
+  callTimer: null,
+  miningInterval: null,
+  localStream: null,
+  peerConnection: null,
+  dataChannel: null,
+  ws: null,
+  callPartnerAddress: null,
+  isSearching: false,
+  currentFilter: 'none',
+  sharedMoment: false, // для вирусного контента
 
-// Константы
-window.JETTON_MASTER_ADDRESS = 'EQAf1n9pHB4gITeBj4VA6jYKa4QKAs7e1z5SSQY3DnYme-Yj';
-window.DAO_CONTRACT_ADDRESS = 'EQB...';
-window.SIGNALING_SERVER_URL = 'wss://soulmine-signaling.fly.dev';
-window.TON_MANIFEST_URL = 'https://soulmine-web.vercel.app/tonconnect-manifest.json';
+  // Прогресс SoulAI
+  soulAI: {
+    emotions: { happy: 0, neutral: 0, surprised: 0, focused: 0 },
+    compatibility: 50,
+    adviceCooldown: false
+  },
 
-// Прогресс пользователя
-window.soulAI = {
-  emotions: { happy: 0, neutral: 0, surprised: 0, focused: 0 },
-  compatibility: 50,
-  adviceCooldown: false
+  // Поведение пользователя
+  userBehavior: {
+    messagesSent: 0,
+    responseTime: [],
+    initiatedChats: 0,
+    usedVoice: false,
+    usedVideo: false
+  },
+
+  // Прогресс пары
+  coupleProgress: {
+    messages: 0,
+    days_active: 0,
+    compatibility: 50
+  },
+
+  // История звонков
+  callHistory: [],
+
+  // TonConnect
+  connector: null,
+
+  // Кэш
+  cache: {
+    loveBalance: null,
+    nfts: [],
+    coupleNFTs: []
+  },
+
+  // Квесты
+  quests: [
+    { id: "connect_wallet", title: "Подключите кошелёк", description: "Станьте частью движения #LoveOnTON", goal: 1, progress: 0, reward: { love: 50, nft: "Апостол Любви" }, completed: false },
+    { id: "first_call", title: "Совершите первый звонок", description: "Получите 100 $LOVE и NFT Гражданина", goal: 1, progress: 0, reward: { love: 100, nft: "Гражданин SoulMine" }, completed: false },
+    { id: "swipe_like", title: "Свайпните вправо", description: "Найдите свою AI-совместимость", goal: 5, progress: 0, reward: { love: 10, nft: null }, completed: false },
+    { id: "complete_call", title: "Завершите звонок", description: "Каждая минута = $LOVE", goal: 10, progress: 0, reward: { love: 50, nft: "Мастер Звонков" }, completed: false },
+    { id: "vote_in_dao", title: "Проголосуйте в DAO", description: "Ваш голос = ваше влияние", goal: 3, progress: 0, reward: { love: 30, nft: "Демократ Любви" }, completed: false },
+    { id: "share_achievement", title: "Поделитесь достижением", description: "Станьте апостолом движения", goal: 1, progress: 0, reward: { love: 25, nft: "Проповедник Любви" }, completed: false }
+  ],
+
+  // Контакты
+  contacts: {
+    telegram: [],
+    ton: []
+  },
+
+  // DAO
+  dao: {
+    proposals: [],
+    userVotes: {},
+    userNFT: null
+  }
 };
 
-// Поведение пользователя
-window.userBehavior = {
-  messagesSent: 0,
-  responseTime: [],
-  initiatedChats: 0,
-  usedVoice: false,
-  usedVideo: false
+const CONFIG = {
+  JETTON_MASTER_ADDRESS: 'EQAf1n9pHB4gITeBj4VA6jYKa4QKAs7e1z5SSQY3DnYme-Yj',
+  DAO_CONTRACT_ADDRESS: 'EQB...', // Заменить на реальный адрес DAO
+  SIGNALING_SERVER_URL: 'wss://soulmine-signaling.fly.dev',
+  TON_MANIFEST_URL: 'https://soulmine-web.vercel.app/tonconnect-manifest.json',
+  STORAGE_KEYS: {
+    USER_ADDRESS: 'soulmine_user_address',
+    SOUL_AI: 'soulmine_soul_ai',
+    USER_BEHAVIOR: 'soulmine_user_behavior',
+    QUESTS: 'soulmine_quests',
+    CALL_HISTORY: 'soulmine_call_history_',
+    ACHIEVEMENTS: 'soulmine_achievements'
+  }
 };
 
-// Прогресс пары
-window.coupleProgress = {
-  messages: 0,
-  days_active: 0,
-  compatibility: 50
-};
+// ========================
+// 💾 Хелперы для localStorage
+// ========================
+function saveToStorage(key, data) {
+  try {
+    localStorage.setItem(key, JSON.stringify(data));
+  } catch (e) {
+    console.warn('Не удалось сохранить в localStorage', key, e);
+  }
+}
 
-// История звонков
-window.callHistory = [];
+function loadFromStorage(key, fallback = null) {
+  try {
+    const data = localStorage.getItem(key);
+    return data ? JSON.parse(data) : fallback;
+  } catch (e) {
+    console.warn('Не удалось загрузить из localStorage', key, e);
+    return fallback;
+  }
+}
 
-// Функции
+// Загружаем состояние при старте
+appState.userAddress = loadFromStorage(CONFIG.STORAGE_KEYS.USER_ADDRESS);
+appState.soulAI = loadFromStorage(CONFIG.STORAGE_KEYS.SOUL_AI, appState.soulAI);
+appState.userBehavior = loadFromStorage(CONFIG.STORAGE_KEYS.USER_BEHAVIOR, appState.userBehavior);
+appState.quests = loadFromStorage(CONFIG.STORAGE_KEYS.QUESTS, appState.quests);
+
+// ========================
+// 💬 UI и бизнес-логика
+// ========================
 function showLove(amount) {
   addLove(amount);
+  
+  // Вирусный триггер: если накопил 10+ $LOVE — предложи поделиться
+  if (appState.userAddress && appState.cache.loveBalance >= 10 && !localStorage.getItem('shared_love')) {
+    setTimeout(() => {
+      const shareText = `Я заработал ${appState.cache.loveBalance} $LOVE в SoulMine! 💜\nМоя AI-совместимость: ${appState.coupleProgress.compatibility.toFixed(0)}%\nПрисоединяйся → https://t.me/LoveSoulMine_Bot`;
+      if (navigator.share) {
+        navigator.share({ text: shareText });
+      } else {
+        navigator.clipboard.writeText(shareText);
+        showViralToast("🔗 Ссылка скопирована! Поделись в соцсетях и получи +5 $LOVE!");
+        localStorage.setItem('shared_love', '1');
+        updateQuestProgress("share_achievement");
+      }
+    }, 5000);
+  }
 }
 
 function addLove(amount) {
-  if (window.userAddress) {
-    getLoveBalance(window.userAddress).then(current => {
-      const currentNum = parseFloat(current.replace('—', '0'));
-      const newBalance = currentNum + amount;
-      const balanceEl = document.getElementById('profile-balance');
-      if (balanceEl) balanceEl.textContent = `${newBalance.toFixed(4)} $LOVE`;
-      const profileBalanceEl = document.getElementById('profile-balance-profile');
-      if (profileBalanceEl) profileBalanceEl.textContent = `${newBalance.toFixed(4)} $LOVE`;
-    });
-  }
+  if (!appState.userAddress) return;
+
+  getLoveBalance(appState.userAddress).then(current => {
+    const currentNum = parseFloat(current.replace('—', '0').replace(/,/g, ''));
+    const newBalance = currentNum + amount;
+    appState.cache.loveBalance = newBalance;
+    updateUIBalance(newBalance.toFixed(4));
+  });
+}
+
+function updateUIBalance(balanceStr) {
+  const elements = [
+    document.getElementById('profile-balance'),
+    document.getElementById('profile-balance-profile')
+  ];
+  elements.forEach(el => {
+    if (el) el.textContent = `${balanceStr} $LOVE`;
+  });
 }
 
 function showNFTModal(nft) {
   const modal = document.getElementById('nft-modal');
   if (!modal) return;
-  document.getElementById('nft-name').textContent = `"${nft.name}"`;
+  document.getElementById('nft-name')?.textContent = `"${nft.name || 'Unknown NFT'}"`;
   modal.style.display = 'flex';
 }
 
@@ -99,33 +195,323 @@ function appendChatMessage(text, sender) {
   msg.textContent = text;
   messages.appendChild(msg);
   messages.scrollTop = messages.scrollHeight;
+  appState.userBehavior.messagesSent++;
+  appState.coupleProgress.messages++;
+  updateQuestProgress("send_message"); // если добавишь такой квест
 }
 
+// ========================
+// 🖥️ Навигация
+// ========================
 window.showScreen = function(id) {
-  const screens = ['main-screen', 'chat-screen', 'profile', 'quests', 'history', 'dao'];
+  const screens = ['main-screen', 'chat-screen', 'profile', 'quests', 'history', 'dao', 'contacts', 'swipe-screen'];
   screens.forEach(s => {
     const el = document.getElementById(s);
     if (el) el.style.display = 'none';
   });
+
   const target = document.getElementById(id);
   if (target) target.style.display = 'block';
+
   document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
   const activeBtn = document.querySelector(`.nav-btn[onclick="showScreen('${id}')"]`);
   if (activeBtn) activeBtn.classList.add('active');
 
   // Загрузка данных для экрана
-  if (id === 'profile' && window.connector?.connected && window.userAddress) {
-    getLoveBalance(window.userAddress).then(b => {
-      const balanceEl = document.getElementById('profile-balance-profile');
-      if (balanceEl) balanceEl.textContent = `${b} $LOVE`;
-    });
-    loadNFTs(window.userAddress);
-    checkCoupleNFTs();
-  }
-  if (id === 'quests') renderQuests();
-  if (id === 'history') renderCallHistory();
-  if (id === 'dao') {
-    loadCitizenNFT();
-    loadProposals();
+  switch (id) {
+    case 'main-screen':
+      // Показываем баннер движения
+      const banner = document.querySelector('.movement-banner');
+      if (banner) banner.style.display = 'block';
+      break;
+    case 'profile':
+      if (appState.connector?.connected && appState.userAddress) {
+        getLoveBalance(appState.userAddress).then(b => {
+          updateUIBalance(b);
+        });
+        loadNFTs(appState.userAddress);
+        checkCoupleNFTs();
+        const statsEl = document.getElementById('user-stats');
+        if (statsEl) {
+          statsEl.innerHTML = `
+            <p>Сообщений отправлено: ${appState.userBehavior.messagesSent}</p>
+            <p>Звонков совершено: ${appState.userBehavior.initiatedChats}</p>
+            <p>Квестов выполнено: ${appState.quests.filter(q => q.completed).length}</p>
+            <p>$LOVE заработано: ${appState.cache.loveBalance?.toFixed(4) || '0.0000'}</p>
+          `;
+        }
+      }
+      break;
+    case 'quests':
+      renderQuests();
+      break;
+    case 'history':
+      renderCallHistory();
+      break;
+    case 'dao':
+      loadCitizenNFT();
+      loadProposals();
+      break;
+    case 'contacts':
+      loadTelegramContacts();
+      break;
   }
 };
+
+// ========================
+// 🎮 Система квестов
+// ========================
+function loadQuests() {
+  const saved = loadFromStorage(CONFIG.STORAGE_KEYS.QUESTS, appState.quests);
+  appState.quests = saved.map((q, i) => ({
+    ...appState.quests[i],
+    ...q
+  }));
+}
+
+function saveQuests() {
+  saveToStorage(CONFIG.STORAGE_KEYS.QUESTS, appState.quests);
+}
+
+function updateQuestProgress(questId, increment = 1) {
+  const quest = appState.quests.find(q => q.id === questId);
+  if (!quest || quest.completed) return;
+
+  quest.progress = Math.min(quest.goal, quest.progress + increment);
+
+  if (quest.progress >= quest.goal && !quest.completed) {
+    completeQuest(quest);
+  }
+
+  saveQuests();
+}
+
+function completeQuest(quest) {
+  quest.completed = true;
+
+  // Эффекты
+  if (typeof confetti === 'function') {
+    confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+  }
+
+  // Награды
+  if (quest.reward.love > 0) {
+    addLove(quest.reward.love);
+  }
+  if (quest.reward.nft) {
+    showNFTModal({ name: quest.reward.nft, image: "🏆" });
+    unlockAchievement(quest.id, quest.reward.nft, quest.description, "🏆");
+  }
+
+  saveQuests();
+}
+
+function renderQuests() {
+  const container = document.getElementById('quests-list');
+  if (!container) return;
+
+  container.innerHTML = '';
+
+  appState.quests.forEach(quest => {
+    const div = document.createElement('div');
+    div.className = `quest-item ${quest.completed ? 'completed' : ''}`;
+    const progressPercent = Math.floor((quest.progress / quest.goal) * 100);
+
+    div.innerHTML = `
+      <h3>${quest.title} ${quest.completed ? '✅' : ''}</h3>
+      <p>${quest.description}</p>
+      <div class="quest-progress-bar">
+        <div class="quest-progress-fill" style="width: ${progressPercent}%"></div>
+      </div>
+      <p class="quest-progress-text">${quest.progress}/${quest.goal}</p>
+      ${quest.completed ? `
+        <div class="quest-reward">
+          🎁 +${quest.reward.love} $LOVE${quest.reward.nft ? `, NFT "${quest.reward.nft}"` : ''}
+        </div>
+      ` : ''}
+    `;
+    container.appendChild(div);
+  });
+}
+
+// ========================
+// 🏆 Система достижений
+// ========================
+function unlockAchievement(id, title, description, icon) {
+  const achievements = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.ACHIEVEMENTS) || '[]');
+  if (achievements.includes(id)) return;
+
+  achievements.push(id);
+  localStorage.setItem(CONFIG.STORAGE_KEYS.ACHIEVEMENTS, JSON.stringify(achievements));
+
+  // Показываем модалку
+  const modal = document.createElement('div');
+  modal.className = 'modal';
+  modal.style.display = 'flex';
+  modal.innerHTML = `
+    <div class="modal-content" style="text-align: center; background: linear-gradient(135deg, #0a0a2a, #1a1a4a);">
+      <div style="font-size: 3rem; margin-bottom: 20px;">${icon}</div>
+      <h2 style="color: #00D1B2; margin-bottom: 10px;">${title}</h2>
+      <p style="margin-bottom: 20px;">${description}</p>
+      <button onclick="document.body.removeChild(this.parentElement.parentElement);" class="btn btn-primary" style="width: 100%;">Закрыть</button>
+    </div>
+  `;
+  document.body.appendChild(modal);
+
+  // Автоматически предлагаем поделиться
+  setTimeout(() => {
+    const shareText = `Я получил достижение в SoulMine: "${title}"! ${icon}\n${description}\nПрисоединяйся → https://t.me/LoveSoulMine_Bot`;
+    navigator.clipboard.writeText(shareText);
+    showViralToast("🏆 Достижение разблокировано! Ссылка скопирована — хвастайтесь!");
+    updateQuestProgress("share_achievement");
+  }, 5000);
+}
+
+// ========================
+// 💞 Парные NFT
+// ========================
+function checkCoupleNFTs() {
+  const COUPLE_NFTS = [
+    { id: "first_night", name: "Первая ночь", required_messages: 50, image: "🌙" },
+    { id: "couple_month", name: "Пара месяца", required_days: 30, image: "🏆" },
+    { id: "eternal_match", name: "Вечная совместимость", required_compatibility: 99, image: "⚡" }
+  ];
+
+  COUPLE_NFTS.forEach(nft => {
+    const key = `soulmine_couple_nft_${nft.id}`;
+    if (localStorage.getItem(key)) return;
+
+    let earned = false;
+    if (nft.required_messages && appState.coupleProgress.messages >= nft.required_messages) earned = true;
+    if (nft.required_days && appState.coupleProgress.days_active >= nft.required_days) earned = true;
+    if (nft.required_compatibility && appState.coupleProgress.compatibility >= nft.required_compatibility) earned = true;
+
+    if (earned) {
+      localStorage.setItem(key, '1');
+      showNFTModal(nft);
+      saveCoupleNFT(nft);
+    }
+  });
+}
+
+function saveCoupleNFT(nft) {
+  const container = document.getElementById('couple-nft-container-profile') || document.getElementById('couple-nft-container');
+  if (!container) return;
+  const div = document.createElement('div');
+  div.className = 'nft-item';
+  div.innerHTML = `
+    <div style="font-size:2.5em; display:flex; align-items:center; justify-content:center; height:100%;">${nft.image}</div>
+    <div class="nft-overlay">${nft.name}</div>
+  `;
+  container.appendChild(div);
+  const section = document.getElementById('couple-nft-section');
+  if (section) section.style.display = 'block';
+}
+
+// ========================
+// 📞 История звонков
+// ========================
+function loadCallHistory() {
+  if (!appState.userAddress) return;
+  const key = `${CONFIG.STORAGE_KEYS.CALL_HISTORY}${appState.userAddress}`;
+  const saved = loadFromStorage(key, []);
+  appState.callHistory = saved;
+}
+
+function saveCallHistory() {
+  if (!appState.userAddress) return;
+  const key = `${CONFIG.STORAGE_KEYS.CALL_HISTORY}${appState.userAddress}`;
+  saveToStorage(key, appState.callHistory);
+  if (appState.callHistory.length % 5 === 0 && typeof saveToTonStorage === 'function') {
+    saveToTonStorage(appState.callHistory, `call_history_${appState.userAddress}.json`);
+  }
+}
+
+function renderCallHistory() {
+  const container = document.getElementById('call-history-list');
+  if (!container) return;
+  container.innerHTML = '';
+  if (appState.callHistory.length === 0) {
+    container.innerHTML = '<p class="empty-state">История пуста</p>';
+    return;
+  }
+  [...appState.callHistory].reverse().forEach(call => {
+    const date = new Date(call.startTime).toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+    const div = document.createElement('div');
+    div.className = 'call-record';
+    div.innerHTML = `
+      <p><strong>Собеседник:</strong> ${call.partner?.slice(0, 6)}...${call.partner?.slice(-4) || '—'}</p>
+      <p><strong>Длительность:</strong> ${call.duration || 0} мин</p>
+      <p><strong>Совместимость:</strong> ${(call.compatibility || 0).toFixed(1)}%</p>
+      <p><strong>Заработано:</strong> ${call.earnedLove?.toFixed(2) || '0.00'} $LOVE</p>
+      <p><strong>Дата:</strong> ${date}</p>
+      <hr>
+    `;
+    container.appendChild(div);
+  });
+}
+
+// ========================
+// 🧩 Заглушки
+// ========================
+function loadCitizenNFT() { console.log('loadCitizenNFT not implemented'); }
+function loadProposals() { console.log('loadProposals not implemented'); }
+function saveToTonStorage() { console.log('saveToTonStorage not implemented'); }
+function connectToSignalingServer() { console.log('connectToSignalingServer not implemented'); }
+function showPartnerPreview() {
+  const models = ['model01', 'model02', 'model03', 'model04', 'model05', 'model06', 'model11', 'model44', 'model66'];
+  const randomModel = models[Math.floor(Math.random() * models.length)];
+  const img = document.getElementById('partner-preview');
+  if (img) {
+    img.src = `./assets/models/${randomModel}.png`;
+    img.style.display = 'block';
+  }
+}
+
+// ========================
+// 🌟 Вирусные UI-компоненты
+// ========================
+function showViralToast(message) {
+  const toast = document.createElement('div');
+  toast.style.cssText = `
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+    background: linear-gradient(135deg, #00D1B2, #00F0E9);
+    color: #00005B; padding: 15px 20px; border-radius: 12px; z-index: 10000;
+    font-weight: bold; box-shadow: 0 4px 20px rgba(0, 209, 178, 0.4);
+    animation: slideUp 0.5s ease-out;
+  `;
+  toast.innerHTML = message;
+  document.body.appendChild(toast);
+  setTimeout(() => { toast.remove(); }, 4000);
+}
+
+// ========================
+// 🔄 Экспорт в window
+// ========================
+window.appState = appState;
+window.CONFIG = CONFIG;
+window.showLove = showLove;
+window.appendChatMessage = appendChatMessage;
+window.showScreen = showScreen;
+window.loadQuests = loadQuests;
+window.saveQuests = saveQuests;
+window.updateQuestProgress = updateQuestProgress;
+window.completeQuest = completeQuest;
+window.renderQuests = renderQuests;
+window.checkCoupleNFTs = checkCoupleNFTs;
+window.loadCallHistory = loadCallHistory;
+window.saveCallHistory = saveCallHistory;
+window.renderCallHistory = renderCallHistory;
+window.showPartnerPreview = showPartnerPreview;
+window.unlockAchievement = unlockAchievement;
+window.showViralToast = showViralToast;
+
+// ========================
+// 🧹 Сохранение при закрытии
+// ========================
+window.addEventListener('beforeunload', () => {
+  saveToStorage(CONFIG.STORAGE_KEYS.USER_ADDRESS, appState.userAddress);
+  saveToStorage(CONFIG.STORAGE_KEYS.SOUL_AI, appState.soulAI);
+  saveToStorage(CONFIG.STORAGE_KEYS.USER_BEHAVIOR, appState.userBehavior);
+  saveToStorage(CONFIG.STORAGE_KEYS.QUESTS, appState.quests);
+});
