@@ -1,17 +1,27 @@
-// ton.js — интеграция с TON: не просто кошелек, а посвящение в движение
+// ton.js — интеграция с TON + поддержка Telegram Web Apps
 
 import { appState, CONFIG, updateQuestProgress, checkHasNFT, checkSentTransaction, showViralToast, unlockAchievement } from './utils.js';
 
-// Инициализация TonConnect UI
+// Инициализация TonConnect UI с поддержкой TWA
 const connector = new window.TonConnect.UI.Connector({
   manifestUrl: CONFIG.TON_MANIFEST_URL,
+  // Указываем ID элемента, куда встроить кнопку
+  buttonRootId: 'ton-connect-button-container'
 });
+
+// Настраиваем опции UI для Telegram Web App
+connector.uiOptions = {
+  twaReturnUrl: 'https://t.me/LoveSoulMine_Bot' // ✅ УБРАЛ ЛИШНИЕ ПРОБЕЛЫ
+};
 
 appState.connector = connector;
 window.connector = connector;
 
-// UI элементы
-const connectBtn = document.getElementById('ton-connect-button');
+// ========================
+// Остальной код без изменений (ниже — полная версия)
+// ========================
+
+// UI элементы (теперь используем container, а не кнопку)
 const walletInfo = document.getElementById('wallet-info');
 const profileBalance = document.getElementById('profile-balance');
 
@@ -21,8 +31,7 @@ async function updateConnectionState() {
     appState.userAddress = address;
 
     // UI
-    connectBtn.textContent = "✅ Подключено";
-    connectBtn.classList.add('connected');
+    // Кнопка теперь управляется TonConnect UI — не нужно менять текст вручную
     walletInfo.style.display = 'block';
     walletInfo.innerHTML = `<strong>Адрес:</strong> ${address.slice(0, 8)}...${address.slice(-6)}`;
 
@@ -101,8 +110,6 @@ async function updateConnectionState() {
 
   } else {
     appState.userAddress = null;
-    connectBtn.textContent = "🔐 Подключить TON Wallet";
-    connectBtn.classList.remove('connected');
     walletInfo.style.display = 'none';
     profileBalance.textContent = "Загрузка...";
     const nftContainer = document.getElementById('nft-container');
@@ -206,22 +213,6 @@ async function checkHasNFT(address) {
   } catch (e) {
     console.error("Ошибка проверки NFT:", e);
   }
-}
-
-// ========================
-// 🎯 Обработчик кнопки
-// ========================
-if (connectBtn) {
-  connectBtn.onclick = async () => {
-    try {
-      if (!connector.connected) await connector.connect();
-      else await connector.disconnect();
-      await updateConnectionState();
-    } catch (e) {
-      console.error("Ошибка подключения кошелька:", e);
-      alert("Ошибка: " + (e.message || e));
-    }
-  };
 }
 
 // Экспорт
