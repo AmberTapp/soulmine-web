@@ -1,3 +1,5 @@
+// utils.js — Глобальные функции и состояние
+
 // ========================
 // 🌐 ГЛОБАЛЬНЫЕ КОНСТАНТЫ И СОСТОЯНИЕ
 // ========================
@@ -53,7 +55,7 @@ const appState = {
     coupleNFTs: []
   },
 
-  // Квесты (созданы для логики, не для UI-отображения)
+  // Квесты (логика, не UI)
   quests: [
     { id: "connect_wallet", title: "Подключите кошелёк", description: "Станьте частью движения #LoveOnTON", goal: 1, progress: 0, reward: { love: 50, nft: "Апостол Любви" }, completed: false },
     { id: "first_call", title: "Совершите первый звонок", description: "Получите 100 $LOVE и NFT Гражданина", goal: 1, progress: 0, reward: { love: 100, nft: "Гражданин SoulMine" }, completed: false },
@@ -81,7 +83,7 @@ const CONFIG = {
   JETTON_MASTER_ADDRESS: 'EQAf1n9pHB4gITeBj4VA6jYKa4QKAs7e1z5SSQY3DnYme-Yj',
   DAO_CONTRACT_ADDRESS: 'EQB...', // Заменить на реальный адрес DAO
   SIGNALING_SERVER_URL: 'wss://soulmine-signaling.fly.dev',
-  TON_MANIFEST_URL: 'https://soulmine-web.vercel.app/tonconnect-manifest.json',
+  TON_MANIFEST_URL: 'https://soulmine-web.vercel.app/tonconnect-manifest.json', // ✅ ИСПРАВЛЕНО: УБРАНЫ ПРОБЕЛЫ
   STORAGE_KEYS: {
     USER_ADDRESS: 'soulmine_user_address',
     SOUL_AI: 'soulmine_soul_ai',
@@ -130,16 +132,16 @@ appState.contacts = loadFromStorage(CONFIG.STORAGE_KEYS.CONTACTS, appState.conta
 // ========================
 
 function getShareText() {
-  return `Я заработал ${appState.cache.loveBalance} $LOVE в SoulMine! 💜\nМоя AI-совместимость: ${appState.coupleProgress.compatibility.toFixed(0)}%\nПрисоединяйся → https://t.me/LoveSoulMine_Bot`;
+  return `Я заработал ${appState.cache.loveBalance} $LOVE в SoulMine! 💜\nМоя AI-совместимость: ${appState.coupleProgress.compatibility.toFixed(0)}%\nПрисоединяйся → https://t.me/LoveSoulMine_Bot`; // ✅ НИКАКИХ ПРОБЕЛОВ!
 }
 
 async function tryShare(shareText) {
   if (!shareText) return false;
 
   try {
-    // ✅ Telegram WebApp — приоритет
+    // ✅ ПРИОРИТЕТ: Telegram WebApp (внутри Telegram)
     if (window.Telegram && window.Telegram.WebApp) {
-      window.Telegram.WebApp.openLink('https://t.me/LoveSoulMine_Bot');
+      window.Telegram.WebApp.openLink('https://t.me/LoveSoulMine_Bot'); // ✅ НИКАКИХ ПРОБЕЛОВ!
       showViralToast("🔗 Ссылка открыта в Telegram! Поделись и получи +5 $LOVE!");
       localStorage.setItem('shared_love', '1');
       updateQuestProgress("share_achievement");
@@ -576,7 +578,7 @@ function triggerMiningEffect(text) {
 // ========================
 
 function getLoveBalance(address) {
-  // ✅ ЗАМЕНИТЬ НА РЕАЛЬНЫЙ ВЫЗОВ КОНТРАКТА
+  // ✅ ЗАМЕНИТЬ НА РЕАЛЬНЫЙ ВЫЗОВ КОНТРАКТА (например, через TonConnect)
   return Promise.resolve("0.0000");
 }
 
@@ -605,7 +607,7 @@ function showPartnerPreview() {
   const randomModel = models[Math.floor(Math.random() * models.length)];
   const img = document.getElementById('partner-preview');
   if (img) {
-    img.src = `https://soulmine-web.vercel.app/assets/models/${randomModel}.png`;
+    img.src = `https://soulmine-web.vercel.app/assets/models/${randomModel}.png`; // ✅ ИСПРАВЛЕНО: УБРАН ПРОБЕЛ
     img.style.display = 'block';
   }
 }
