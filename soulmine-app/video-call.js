@@ -1,5 +1,3 @@
-// webrtc.js — не просто звонки, а генерация вирусного контента через AI
-
 import { appState, CONFIG, showLove, appendChatMessage, saveCallHistory, updateQuestProgress, checkCoupleNFTs, unlockAchievement, showViralToast } from './utils.js';
 
 // === AI SoulMatch ===
@@ -847,4 +845,5 @@ window.startVoiceCallWithCurrent = startVoiceCallWithCurrent;
 window.startVideoCallWithCurrent = startVideoCallWithCurrent;
 window.sendWebAppData = sendWebAppData;
 window.endVideoCall = endVideoCall;
+
 window.connectToSignalingServer = connectToSignalingServer;
