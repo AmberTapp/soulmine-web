@@ -1,5 +1,3 @@
-// utils.js — Глобальные функции и состояние
-
 // ========================
 // 🌐 ГЛОБАЛЬНЫЕ КОНСТАНТЫ И СОСТОЯНИЕ
 // ========================
@@ -132,7 +130,9 @@ appState.contacts = loadFromStorage(CONFIG.STORAGE_KEYS.CONTACTS, appState.conta
 // ========================
 
 function getShareText() {
-  return `Я заработал ${appState.cache.loveBalance} $LOVE в SoulMine! 💜\nМоя AI-совместимость: ${appState.coupleProgress.compatibility.toFixed(0)}%\nПрисоединяйся → https://t.me/LoveSoulMine_Bot`; // ✅ НИКАКИХ ПРОБЕЛОВ!
+  // ✅ Используем encodeURIComponent для безопасного URL
+  const refLink = `https://t.me/LoveSoulMine_Bot?start=ref_${encodeURIComponent(appState.userAddress || '')}`;
+  return `Я заработал ${appState.cache.loveBalance} $LOVE в SoulMine! 💜\nМоя AI-совместимость: ${appState.coupleProgress.compatibility.toFixed(0)}%\nПрисоединяйся → ${refLink}`;
 }
 
 async function tryShare(shareText) {
@@ -141,7 +141,8 @@ async function tryShare(shareText) {
   try {
     // ✅ ПРИОРИТЕТ: Telegram WebApp (внутри Telegram)
     if (window.Telegram && window.Telegram.WebApp) {
-      window.Telegram.WebApp.openLink('https://t.me/LoveSoulMine_Bot'); // ✅ НИКАКИХ ПРОБЕЛОВ!
+      // ✅ ИСПРАВЛЕНО: УБРАНЫ ПРОБЕЛЫ
+      window.Telegram.WebApp.openLink('https://t.me/LoveSoulMine_Bot');
       showViralToast("🔗 Ссылка открыта в Telegram! Поделись и получи +5 $LOVE!");
       localStorage.setItem('shared_love', '1');
       updateQuestProgress("share_achievement");
@@ -607,7 +608,8 @@ function showPartnerPreview() {
   const randomModel = models[Math.floor(Math.random() * models.length)];
   const img = document.getElementById('partner-preview');
   if (img) {
-    img.src = `https://soulmine-web.vercel.app/assets/models/${randomModel}.png`; // ✅ ИСПРАВЛЕНО: УБРАН ПРОБЕЛ
+    // ✅ ИСПРАВЛЕНО: УБРАН ПРОБЕЛ ПЕРЕД ${randomModel}
+    img.src = `https://soulmine-web.vercel.app/assets/models/${randomModel}.png`;
     img.style.display = 'block';
   }
 }
