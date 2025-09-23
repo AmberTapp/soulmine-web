@@ -1,0 +1,23 @@
+{
+  "name": "soulmine-web",
+  "version": "1.0.0",
+  "description": "Web3-знакомства с майнингом $LOVE на TON",
+  "main": "index.html",
+  "scripts": {
+    "dev": "echo 'Development server not needed for static site'",
+    "build": "echo 'Built successfully'",
+    "start": "echo 'Starting server'"
+  },
+  "keywords": [
+    "TON",
+    "Web3",
+    "Love",
+    "SoulMine",
+    "$LOVE",
+    "NFT",
+    "DAO",
+    "Telegram Bot"
+  ],
+  "author": "AmberTapp",
+  "license": "MIT"
+}
