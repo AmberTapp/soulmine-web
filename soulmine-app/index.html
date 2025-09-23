@@ -3,44 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="description" content="SoulMine — Web3-знакомства с майнингом $LOVE на TON. AI-совместимость, NFT, DAO, голосование.">
-  <meta name="keywords" content="TON, Web3, Love, SoulMine, $LOVE, NFT, DAO, Telegram Bot">
-  <meta name="author" content="SoulMine Team">
-
-  <!-- Telegram Web App Metadata -->
-  <meta name="telegram-web-app-bot-username" content="LoveSoulMine_Bot">
-  <meta name="telegram-web-app-theme" content="theme_name=telegram&bg_color=%230a0a2a&text_color=%23ffffff&button_color=%2300d1b2&button_text_color=%23000000">
-
-  <!-- Open Graph / Social Media -->
-  <meta property="og:title" content="SoulMine — Вселенная Любви на TON">
-  <meta property="og:description" content="Каждое сообщение = $LOVE. Найди свою AI-совместимость. Получи NFT и голосуй в DAO.">
-  <meta property="og:image" content="https://soulmine-web.vercel.app/icon.png">
-  <meta property="og:url" content="https://soulmine-web.vercel.app">
-  <meta property="og:type" content="website">
-
-  <!-- Twitter Card -->
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="SoulMine — Вселенная Любви на TON">
-  <meta name="twitter:description" content="Каждое сообщение = $LOVE. Найди свою AI-совместимость. Получи NFT и голосуй в DAO.">
-  <meta name="twitter:image" content="https://soulmine-web.vercel.app/icon.png">
-  <meta name="twitter:creator" content="@LoveSoulMine_Bot">
-
-  <!-- PWA -->
-  <link rel="manifest" href="/manifest.json">
-  <link rel="apple-touch-icon" href="/icon-192.png">
-
-  <!-- Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
-
-  <!-- Styles -->
+  <title>SoulMine — Web3 Знакомства с $LOVE</title>
   <link rel="stylesheet" href="./styles/main.css">
-
-  <!-- External Libraries (CDN) -->
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   <script src="https://unpkg.com/face-api.js@0.22.2/dist/face-api.min.js"></script>
-
-  <title>SoulMine — Web3 Знакомства с $LOVE</title>
 </head>
 <body>
   <!-- Splash Screen -->
@@ -58,206 +26,35 @@
     </div>
   </div>
 
-  <!-- AI Advice Popup -->
-  <div id="ai-advice" style="display: none; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: rgba(0, 209, 178, 0.9); color: #000; padding: 12px 20px; border-radius: 12px; z-index: 1000; font-weight: bold; box-shadow: 0 4px 12px rgba(0, 209, 178, 0.4);">
-    Отличная химия! Продолжайте 👏
-  </div>
-
   <!-- Main Container -->
   <div class="container">
-    <!-- Movement Banner (показывается на главном экране) -->
-    <div class="movement-banner" style="display: none;">
-      <p>💜 Ты — часть движения <strong>#LoveOnTON</strong></p>
-      <p>Присоединяйся к 1,000,000+ апостолов любви</p>
-    </div>
-
-    <!-- Main Screen -->
-    <div id="main-screen" class="screen active">
-      <div class="hero-section">
-        <h1 class="app-logo">SoulMine</h1>
-        <p class="app-slogan">Web3 Знакомства с майнингом $LOVE</p>
-        <p class="app-desc">AI находит твою идеальную пару. Каждое сообщение = крипта.</p>
-        <div class="zero-friction-slogan">
-          💞 Нулевое трение: подключил кошелек — получил $LOVE
-        </div>
+    <div class="hero-section">
+      <h1 class="app-logo">SoulMine</h1>
+      <p class="app-slogan">Web3 Знакомства с майнингом $LOVE</p>
+      <p class="app-desc">AI находит твою идеальную пару. Каждое сообщение = крипта.</p>
+      <div class="zero-friction-slogan">
+        💞 Нулевое трение: подключил кошелек — получил $LOVE
       </div>
 
-      <!-- TonConnect Button — ВАЖНО: контейнер для UI -->
+      <!-- 🛠️ РАБОЧАЯ КНОПКА ПОДКЛЮЧЕНИЯ КОШЕЛЁКА -->
       <div id="ton-connect-button-container" style="margin: 20px 0;"></div>
 
-      <!-- Wallet Info (показывается после подключения) -->
-      <div id="wallet-info" style="display: none; background: rgba(0,0,0,0.3); padding: 16px; border-radius: 12px; margin: 20px 0;">
-        <strong>Адрес:</strong> <span id="wallet-address-display">...</span>
-      </div>
-
-      <div style="display: flex; gap: 10px; margin: 20px 0;">
-        <button onclick="showScreen('quests')" class="btn btn-secondary" style="flex: 1;">🏆 Квесты</button>
-        <button onclick="showScreen('history')" class="btn btn-secondary" style="flex: 1;">📞 История</button>
-      </div>
-
-      <button onclick="findRandomPartner()" class="btn btn-primary" style="width: 100%; margin: 20px 0;">
-        💘 Найти случайную пару
+      <!-- 🚀 КНОПКА ПЕРЕХОДА В БОТА -->
+      <button onclick="window.Telegram?.WebApp.openLink('https://t.me/LoveSoulMine_Bot')" 
+              class="btn btn-secondary" style="width: 100%; margin: 20px 0;">
+        🤖 Перейти в Telegram-бота
       </button>
 
-      <button onclick="showScreen('swipe-screen')" class="btn btn-secondary" style="width: 100%; margin: 10px 0;">
-        👉 Свайпать профили
+      <!-- 📢 КНОПКА ПОДПИСКИ НА КАНАЛ -->
+      <button onclick="window.Telegram?.WebApp.openLink('https://t.me/SoulMineNews')" 
+              class="btn btn-secondary" style="width: 100%; margin: 20px 0;">
+        📣 Подписаться на канал
       </button>
 
-      <!-- Resource Links — исправлены URL -->
-      <div class="resource-links">
-        <a href="https://t.me/LoveSoulMine_Bot" target="_blank" rel="noopener noreferrer">🤖 Telegram Bot</a>
-        <a href="https://github.com/AmberTapp/soulmine-web" target="_blank" rel="noopener noreferrer">💻 GitHub</a>
-      </div>
-    </div>
-
-    <!-- Swipe Screen -->
-    <div id="swipe-screen" class="screen">
-      <div class="header">
-        <h1>Свайпайте ❤️</h1>
-        <p>Найдите свою идеальную пару</p>
-      </div>
-      <div id="swipe-area" class="swipe-area"></div>
-      <div class="action-buttons-fixed">
-        <button onclick="openChatWithCurrent()" class="action-btn chat-btn" title="Чат">💬</button>
-        <button onclick="startVoiceCallWithCurrent()" class="action-btn call-btn" title="Голосовой звонок">📞</button>
-        <button onclick="startVideoCallWithCurrent()" class="action-btn video-btn" title="Видео звонок">🎥</button>
-      </div>
-    </div>
-
-    <!-- Profile Screen -->
-    <div id="profile" class="screen">
-      <div class="header">
-        <h1>Ваш Профиль</h1>
-      </div>
-      <div style="background: rgba(0,0,0,0.3); padding: 20px; border-radius: 16px; margin-bottom: 20px;">
-        <h3>Баланс: <span id="profile-balance-profile">Загрузка...</span></h3>
-        <div id="user-stats" style="margin-top: 16px;"></div>
-      </div>
-      <h3>Ваши NFT</h3>
-      <div id="nft-container-profile" style="margin: 20px 0; display: flex; flex-wrap: wrap; gap: 10px;"></div>
-      <h3>Парные NFT</h3>
-      <div id="couple-nft-section" style="display: none;">
-        <div id="couple-nft-container-profile" style="display: flex; flex-wrap: wrap; gap: 10px;"></div>
-      </div>
-      <button onclick="showScreen('main-screen')" class="btn btn-secondary" style="width: 100%; margin-top: 20px;">
-        Назад
+      <!-- 🔗 РЕФЕРАЛЬНАЯ ССЫЛКА -->
+      <button onclick="copyReferralLink()" class="btn btn-secondary" style="width: 100%; margin: 20px 0;">
+        🌐 Скопировать реферальную ссылку
       </button>
-    </div>
-
-    <!-- Quests Screen -->
-    <div id="quests" class="screen">
-      <div class="header">
-        <h1>Квесты</h1>
-        <p>Выполняйте задания — получайте $LOVE и NFT</p>
-      </div>
-      <div id="quests-list"></div>
-      <button onclick="checkAllQuests()" class="btn btn-secondary" style="width: 100%; margin-top: 20px;">
-        🔄 Проверить все квесты
-      </button>
-    </div>
-
-    <!-- Call History Screen -->
-    <div id="history" class="screen">
-      <div class="header">
-        <h1>История звонков</h1>
-      </div>
-      <div id="call-history-list"></div>
-    </div>
-
-    <!-- DAO Screen -->
-    <div id="dao" class="screen">
-      <div class="header">
-        <h1>DAO Голосования</h1>
-        <p>Участвуйте в управлении SoulMine</p>
-      </div>
-      <div class="citizen-nft-display" id="citizen-nft-display">
-        <div style="color: #aaa; text-align: center; padding: 20px;">Загрузка NFT...</div>
-      </div>
-      <div id="proposals-list"></div>
-    </div>
-
-    <!-- Contacts Screen -->
-    <div id="contacts" class="screen">
-      <div class="header">
-        <h1>Контакты</h1>
-        <p>Найдите друзей в SoulMine</p>
-      </div>
-      <button onclick="loadTelegramContacts()" class="btn btn-primary" style="width: 100%; margin-bottom: 20px;">
-        📱 Загрузить контакты Telegram
-      </button>
-      <div id="contacts-list"></div>
-    </div>
-
-    <!-- NFT Modal -->
-    <div id="nft-modal" class="modal">
-      <div class="modal-content">
-        <button class="close-btn" onclick="closeModal()">×</button>
-        <h2 style="text-align: center; margin-bottom: 20px;">🎉 Получено NFT!</h2>
-        <div id="nft-image" style="font-size: 4rem; text-align: center; margin: 20px 0;">🏆</div>
-        <h3 id="nft-name" style="text-align: center; margin-bottom: 30px;">"Название NFT"</h3>
-        <button onclick="closeModal()" class="btn btn-primary" style="width: 100%;">Продолжить</button>
-      </div>
-    </div>
-
-    <!-- AI Params Modal -->
-    <div id="ai-params-modal" class="modal">
-      <div class="modal-content">
-        <button class="close-btn" onclick="document.getElementById('ai-params-modal').style.display='none'">×</button>
-        <h2 style="text-align: center; margin-bottom: 20px;">AI SoulMatch</h2>
-        <div style="margin-bottom: 20px;">
-          <label>Возрастной диапазон:</label>
-          <select id="age-range" style="width: 100%; padding: 10px; margin-top: 8px; border-radius: 8px; background: #1a1a2e; color: white; border: 1px solid #00d1b2;">
-            <option value="18-25">18-25</option>
-            <option value="26-35">26-35</option>
-            <option value="36-45">36-45</option>
-            <option value="45+">45+</option>
-          </select>
-        </div>
-        <div style="margin-bottom: 20px;">
-          <label>Цель знакомства:</label>
-          <select id="goal" style="width: 100%; padding: 10px; margin-top: 8px; border-radius: 8px; background: #1a1a2e; color: white; border: 1px solid #00d1b2;">
-            <option value="dating">Серьезные отношения</option>
-            <option value="friendship">Дружба</option>
-            <option value="networking">Web3-нетворкинг</option>
-          </select>
-        </div>
-        <div style="margin-bottom: 20px;">
-          <label>Интересы (выберите до 3):</label>
-          <div id="interests-container" class="interests-container"></div>
-        </div>
-        <button onclick="saveAIParams()" class="btn btn-primary" style="width: 100%;">Начать поиск</button>
-      </div>
-    </div>
-
-    <!-- Searching Modal -->
-    <div id="searching-modal" class="modal">
-      <div class="modal-content" style="text-align: center;">
-        <h2>Ищем для вас идеальную пару...</h2>
-        <p style="margin: 20px 0; color: #aaa;">AI анализирует совместимость</p>
-        <div style="width: 50px; height: 50px; border: 4px solid #00d1b2; border-top: 4px solid transparent; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;"></div>
-        <button onclick="cancelSearch()" class="btn btn-secondary" style="margin-top: 20px;">Отменить</button>
-      </div>
-    </div>
-
-    <!-- Video Call Modal -->
-    <div id="video-modal" class="modal">
-      <div style="position: relative; width: 100%; max-width: 400px; margin: 0 auto;">
-        <div id="ar-effects"></div>
-        <video id="local-video" autoplay playsinline muted style="width: 100%; border-radius: 12px; margin-bottom: 16px;"></video>
-        <video id="remote-video" autoplay playsinline style="width: 100%; border-radius: 12px; margin-bottom: 16px;"></video>
-        <div id="video-status" style="color: #aaa; text-align: center; margin: 10px 0;">Подключение...</div>
-        <div id="video-timer" style="font-size: 24px; font-weight: bold; text-align: center; margin: 10px 0;">00:00</div>
-        <div style="display: flex; gap: 10px; margin: 20px 0;">
-          <button class="filter-btn" onclick="applyFilter('none')">Обычный</button>
-          <button class="filter-btn" onclick="applyFilter('hearts')">❤️</button>
-          <button class="filter-btn" onclick="applyFilter('ton')">💎</button>
-          <button class="filter-btn" onclick="applyFilter('party')">🎉</button>
-        </div>
-        <div style="display: flex; gap: 10px;">
-          <button onclick="captureMoment()" class="btn btn-secondary" style="flex: 1;">📸 Снимок</button>
-          <button onclick="endVideoCall()" class="btn btn-primary" style="flex: 1;">❌ Завершить</button>
-        </div>
-      </div>
     </div>
   </div>
 
@@ -285,7 +82,7 @@
     </button>
   </div>
 
-  <!-- Scripts — ВСЕ МОДУЛИ — ПОСЛЕ HTML -->
+  <!-- Scripts -->
   <script src="./scripts/utils.js" type="module"></script>
   <script src="./scripts/ton.js" type="module"></script>
   <script src="./scripts/main.js" type="module"></script>
@@ -293,39 +90,20 @@
   <script src="./scripts/dao.js" type="module"></script>
   <script src="./scripts/contacts.js" type="module"></script>
 
-  <!-- Скрипт для отмены поиска (не модуль, чтобы не зависеть от импортов) -->
   <script>
-    // Для отмены поиска
-    window.cancelSearch = function() {
-      if (window.isSearching && window.ws && window.ws.readyState === WebSocket.OPEN) {
-        window.ws.send(JSON.stringify({ type: 'cancel_search' }));
-        window.isSearching = false;
-      }
-      document.getElementById('searching-modal').style.display = 'none';
-    };
-  </script>
+    // Копирование реферальной ссылки
+    function copyReferralLink() {
+      const refLink = `https://t.me/LoveSoulMine_Bot?start=ref_${encodeURIComponent(appState.userAddress || 'unknown')}`;
+      navigator.clipboard.writeText(refLink)
+        .then(() => showViralToast("🔗 Ссылка скопирована! Пригласите друзей и получите NFT!"))
+        .catch(err => showViralToast("❌ Не удалось скопировать ссылку"));
+    }
 
-  <!-- Telegram Web App Initialization (если используется) -->
-  <script>
-    // Загружаем Telegram Web App API, если он есть
+    // Загружаем Telegram Web App API
     if (window.Telegram && window.Telegram.WebApp) {
       window.Telegram.WebApp.ready();
       window.Telegram.WebApp.expand();
     }
-  </script>
-
-  <!-- Splash Screen Auto Hide -->
-  <script>
-    // Скрываем splash screen через 2 секунды или при загрузке всех ресурсов
-    document.addEventListener('DOMContentLoaded', () => {
-      setTimeout(() => {
-        const splash = document.getElementById('splash-screen');
-        if (splash) splash.style.opacity = '0';
-        setTimeout(() => {
-          if (splash) splash.remove();
-        }, 500);
-      }, 2000);
-    });
   </script>
 </body>
 </html>
