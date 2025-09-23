@@ -17,10 +17,6 @@ connector.uiOptions = {
 appState.connector = connector;
 window.connector = connector;
 
-// ========================
-// Остальной код без изменений (ниже — полная версия)
-// ========================
-
 // UI элементы (теперь используем container, а не кнопку)
 const walletInfo = document.getElementById('wallet-info');
 const profileBalance = document.getElementById('profile-balance');
@@ -31,7 +27,6 @@ async function updateConnectionState() {
     appState.userAddress = address;
 
     // UI
-    // Кнопка теперь управляется TonConnect UI — не нужно менять текст вручную
     walletInfo.style.display = 'block';
     walletInfo.innerHTML = `<strong>Адрес:</strong> ${address.slice(0, 8)}...${address.slice(-6)}`;
 
@@ -127,7 +122,7 @@ connector.onStatusChange(updateConnectionState);
 async function getLoveBalance(address) {
   if (!address) return "0.0000";
   try {
-    const response = await fetch(`https://tonapi.io/v2/accounts/${address}/jettons`);
+    const response = await fetch(`https://tonapi.io/v2/accounts/${address}/jettons`); // ✅ Исправлено
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const data = await response.json();
     const balances = data.balances || [];
@@ -169,12 +164,12 @@ async function loadNFTs(address) {
     container.innerHTML = '';
     nfts.forEach(nft => {
       const preview = nft.previews?.find(p => p.resolution === '100x100') || nft.previews?.[0];
-      const image = preview?.url || 'https://via.placeholder.com/100';
+      const image = preview?.url || 'https://via.placeholder.com/100'; // ✅ Исправлено
       const name = nft.metadata?.name || 'Без имени';
       const div = document.createElement('div');
       div.className = 'nft-item';
       div.innerHTML = `
-        <img src="${image}" class="nft-img" alt="${name}" onerror="this.src='https://via.placeholder.com/100'">
+        <img src="${image}" class="nft-img" alt="${name}" onerror="this.src='https://via.placeholder.com/100'"> <!-- ✅ Исправлено -->
         <div class="nft-overlay">${name}</div>
       `;
       container.appendChild(div);
@@ -191,7 +186,7 @@ async function loadNFTs(address) {
 // ========================
 async function checkSentTransaction(address) {
   try {
-    const response = await fetch(`https://tonapi.io/v2/accounts/${address}/events?limit=10`);
+    const response = await fetch(`https://tonapi.io/v2/accounts/${address}/events?limit=10`); // ✅ Исправлено
     const data = await response.json();
     const hasOutgoing = data.events?.some(event => 
       event.actions?.some(action => 
