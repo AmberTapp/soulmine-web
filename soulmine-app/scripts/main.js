@@ -1,3 +1,5 @@
+// main.js — инициализация вселенной SoulMine (исправленная версия)
+
 import { appState, CONFIG, loadQuests, loadCallHistory, showScreen, showPartnerPreview, unlockAchievement, showViralToast } from './utils.js';
 
 /**
@@ -37,6 +39,30 @@ function initTelegramWebApp() {
   // Показываем главный экран — начало путешествия
   showScreen('main-screen');
 }
+
+/**
+ * Заглушка для findRandomPartner — предотвращает зависание
+ */
+window.findRandomPartner = function() {
+  if (!appState.userAddress) {
+    alert('Сначала подключите кошелек!');
+    return;
+  }
+  
+  const modal = document.getElementById('ai-params-modal');
+  if (modal) {
+    modal.style.display = 'flex';
+  } else {
+    alert('Функция поиска партнера временно недоступна. Попробуйте позже.');
+  }
+};
+
+/**
+ * Заглушка для connectToSignalingServer — предотвращает ошибки
+ */
+window.connectToSignalingServer = function() {
+  console.log('Сигнальный сервер будет подключен после загрузки video-call.js');
+};
 
 /**
  * Инициализация приложения — космический старт
