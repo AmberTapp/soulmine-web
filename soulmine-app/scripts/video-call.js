@@ -1,4 +1,6 @@
-// === Глобальные переменные (уже объявлены в utils.js) ===
+// webrtc.js — не просто звонки, а генерация вирусного контента через AI
+
+import { appState, CONFIG, showLove, appendChatMessage, saveCallHistory, updateQuestProgress, checkCoupleNFTs, unlockAchievement, showViralToast } from './utils.js';
 
 // === AI SoulMatch ===
 const ALL_INTERESTS = [
@@ -8,8 +10,7 @@ const ALL_INTERESTS = [
 ];
 
 function loadAIParams() {
-  const saved = localStorage.getItem('soulmine_ai_params');
-  return saved ? JSON.parse(saved) : null;
+  return JSON.parse(localStorage.getItem('soulmine_ai_params')) || null;
 }
 
 function showAIParamsModal() {
@@ -17,7 +18,6 @@ function showAIParamsModal() {
   if (!modal) return;
 
   const savedParams = loadAIParams();
-
   if (savedParams) {
     if (savedParams.ageRange) document.getElementById('age-range').value = savedParams.ageRange;
     if (savedParams.goal) document.getElementById('goal').value = savedParams.goal;
@@ -62,37 +62,39 @@ function saveAIParams() {
 
   const params = { ageRange, interests, goal };
   localStorage.setItem('soulmine_ai_params', JSON.stringify(params));
-
   document.getElementById('ai-params-modal').style.display = 'none';
-
   findAISoulmate(params);
 }
 
 async function findAISoulmate(params) {
-  if (!userAddress) {
+  if (!appState.userAddress) {
     alert('Сначала подключите кошелек!');
     return;
   }
-  if (isCalling) {
+  if (appState.isCalling) {
     alert('Завершите текущий звонок!');
     return;
   }
-  if (isSearching) {
-    ws.send(JSON.stringify({ type: 'cancel_search' }));
-    isSearching = false;
+  if (appState.isSearching) {
+    if (appState.ws && appState.ws.readyState === WebSocket.OPEN) {
+      appState.ws.send(JSON.stringify({ type: 'cancel_search' }));
+    }
+    appState.isSearching = false;
     return;
   }
 
-  isSearching = true;
+  appState.isSearching = true;
 
   const searchingModal = document.getElementById('searching-modal');
   if (searchingModal) searchingModal.style.display = 'flex';
 
-  ws.send(JSON.stringify({
-    type: 'find_ai_soulmate',
-    address: userAddress,
-    params: params
-  }));
+  if (appState.ws && appState.ws.readyState === WebSocket.OPEN) {
+    appState.ws.send(JSON.stringify({
+      type: 'find_ai_soulmate',
+      address: appState.userAddress,
+      params: params
+    }));
+  }
 
   console.log('🚀 Запущен AI SoulMatch с параметрами:', params);
 }
@@ -107,7 +109,7 @@ window.findRandomPartner = function() {
   }
 };
 
-// === Система свайпов для поиска пары ===
+// === Система свайпов ===
 const DEMO_USERS = [
   { id: 1, name: "Анна", age: 24, interests: "Музыка, Путешествия", wallet: "EQAbc...def", image: "model01" },
   { id: 2, name: "Марк", age: 28, interests: "Web3, Технологии", wallet: "EQGhi...jkl", image: "model02" },
@@ -129,7 +131,8 @@ function initSwipeArea() {
   const swipeArea = document.getElementById('swipe-area');
   if (!swipeArea) return;
   swipeArea.innerHTML = '';
-  if (!userAddress) {
+
+  if (!appState.userAddress) {
     swipeArea.innerHTML = `
       <div class="placeholder-card">
         <p>Подключите кошелек, чтобы начать свайпать ❤️</p>
@@ -137,9 +140,11 @@ function initSwipeArea() {
     `;
     return;
   }
+
   for (let i = 0; i < Math.min(3, DEMO_USERS.length); i++) {
     createCard(i);
   }
+
   currentCardElement = swipeArea.querySelector('.swipe-card');
   if (currentCardElement) {
     currentCardElement.style.zIndex = '10';
@@ -153,7 +158,7 @@ function createCard(index) {
   card.className = 'swipe-card';
   card.dataset.index = index;
   card.innerHTML = `
-    <img src="./models/${user.image}.png" alt="${user.name}">
+    <img src="./assets/models/${user.image}.png" alt="${user.name}">
     <div class="card-info">
       <h3>${user.name}, ${user.age}</h3>
       <p>${user.interests}</p>
@@ -162,7 +167,7 @@ function createCard(index) {
   `;
   card.addEventListener('mousedown', startDrag);
   card.addEventListener('touchstart', startDrag);
-  document.getElementById('swipe-area').appendChild(card);
+  swipeArea.appendChild(card);
 }
 
 function startDrag(e) {
@@ -196,16 +201,13 @@ function endDrag() {
   const deltaX = currentX - startX;
   const card = currentCardElement;
   if (!card) return;
+
   if (deltaX > 100) {
     card.classList.add('swiping-right');
-    setTimeout(() => {
-      handleLike();
-    }, 300);
+    setTimeout(() => handleLike(), 300);
   } else if (deltaX < -100) {
     card.classList.add('swiping-left');
-    setTimeout(() => {
-      handleDislike();
-    }, 300);
+    setTimeout(() => handleDislike(), 300);
   } else {
     card.style.transform = 'translateX(0) rotate(0deg)';
     card.style.opacity = '1';
@@ -215,12 +217,13 @@ function endDrag() {
 function handleLike() {
   const user = DEMO_USERS[currentCardIndex];
   showLove(1.0);
-  // Отправляем данные в Telegram-бот
   sendWebAppData({
     type: "swipe",
     action: "like",
     partner: user.wallet
   });
+  updateQuestProgress("swipe_like");
+  unlockAchievement('first_like', 'Первый Лайк', 'Вы поставили первый лайк!', '❤️');
   alert(`❤️ Вам понравился ${user.name}!`);
   showNextCard();
 }
@@ -228,12 +231,12 @@ function handleLike() {
 function handleDislike() {
   const user = DEMO_USERS[currentCardIndex];
   showLove(0.1);
-  // Отправляем данные в Telegram-бот
   sendWebAppData({
     type: "swipe",
     action: "dislike",
     partner: user.wallet
   });
+  updateQuestProgress("swipe_dislike");
   alert(`❌ Вы пропустили ${user.name}`);
   showNextCard();
 }
@@ -242,9 +245,11 @@ function showNextCard() {
   currentCardIndex++;
   const swipeArea = document.getElementById('swipe-area');
   if (!swipeArea) return;
+
   if (currentCardElement) {
     currentCardElement.remove();
   }
+
   if (currentCardIndex < DEMO_USERS.length) {
     createCard(currentCardIndex);
     currentCardElement = swipeArea.querySelector('.swipe-card:last-child');
@@ -265,7 +270,7 @@ function showNextCard() {
   }
 }
 
-// === Действия с текущей карточкой ===
+// === Действия с карточкой ===
 function openChatWithCurrent() {
   if (!currentCardElement) {
     alert('Нет активной карточки!');
@@ -273,8 +278,8 @@ function openChatWithCurrent() {
   }
   const index = parseInt(currentCardElement.dataset.index);
   const user = DEMO_USERS[index];
-  callPartnerAddress = user.wallet;
-  openChat();
+  appState.callPartnerAddress = user.wallet;
+  alert(`Чат с ${user.name} скоро будет доступен!`);
 }
 
 function startVoiceCallWithCurrent() {
@@ -284,8 +289,8 @@ function startVoiceCallWithCurrent() {
   }
   const index = parseInt(currentCardElement.dataset.index);
   const user = DEMO_USERS[index];
-  callPartnerAddress = user.wallet;
-  startVideoCall(); // В демо-версии используем видео
+  appState.callPartnerAddress = user.wallet;
+  startVideoCall(); // В демо — видео
 }
 
 function startVideoCallWithCurrent() {
@@ -295,25 +300,25 @@ function startVideoCallWithCurrent() {
   }
   const index = parseInt(currentCardElement.dataset.index);
   const user = DEMO_USERS[index];
-  callPartnerAddress = user.wallet;
+  appState.callPartnerAddress = user.wallet;
   startVideoCall();
 }
 
-// === Функция для отправки данных в Telegram-бот ===
+// === Отправка данных в Telegram ===
 function sendWebAppData(data) {
-  if (window.Telegram && window.Telegram.WebApp) {
+  if (window.Telegram?.WebApp?.sendData) {
     try {
       window.Telegram.WebApp.sendData(JSON.stringify(data));
       console.log('✅ Данные отправлены в Telegram-бот:', data);
     } catch (error) {
-      console.error('❌ Ошибка отправки данных в Telegram-бот:', error);
+      console.error('❌ Ошибка отправки:', error);
     }
   } else {
-    console.warn('⚠️ Telegram WebApp API не доступно');
+    console.warn('⚠️ Telegram WebApp недоступен');
   }
 }
 
-// === Остальная логика видеозвонков ===
+// === WebRTC ===
 function initPeerConnection() {
   const config = {
     iceServers: [
@@ -321,16 +326,16 @@ function initPeerConnection() {
       { urls: 'stun:stun1.l.google.com:19302' }
     ]
   };
-  peerConnection = new RTCPeerConnection(config);
+  appState.peerConnection = new RTCPeerConnection(config);
   console.log('✅ WebRTC соединение инициализировано');
 
-  peerConnection.ondatachannel = (event) => {
+  appState.peerConnection.ondatachannel = (event) => {
     setupDataChannel(event.channel);
   };
 }
 
 function setupDataChannel(channel) {
-  dataChannel = channel;
+  appState.dataChannel = channel;
   channel.onopen = () => {
     console.log('📡 DataChannel открыт');
     sendCompatibilityUpdate();
@@ -338,10 +343,10 @@ function setupDataChannel(channel) {
   };
   channel.onmessage = (event) => {
     const msg = JSON.parse(event.data);
-    console.log('📩 Получено по DataChannel:', msg);
+    console.log('📩 Получено:', msg);
     switch (msg.type) {
       case 'compatibility_update':
-        coupleProgress.compatibility = msg.value;
+        appState.coupleProgress.compatibility = msg.value;
         const display = document.getElementById('compatibility-display');
         if (display) display.textContent = `${msg.value.toFixed(1)}%`;
         checkCoupleNFTs();
@@ -353,18 +358,18 @@ function setupDataChannel(channel) {
         appendChatMessage(msg.text, 'partner');
         break;
       case 'ai_match_found':
-        callPartnerAddress = msg.partner;
+        appState.callPartnerAddress = msg.partner;
         alert(`🎯 AI нашел вам идеальную пару! Совместимость: ${(msg.compatibilityScore * 100).toFixed(0)}%`);
         const searchingModal = document.getElementById('searching-modal');
         if (searchingModal) searchingModal.style.display = 'none';
-        isSearching = false;
+        appState.isSearching = false;
         startVideoCall(true);
         break;
       case 'ai_match_not_found':
-        alert(msg.message || 'Подходящих собеседников не найдено. Попробуйте позже.');
+        alert(msg.message || 'Подходящих собеседников не найдено.');
         const searchingModal2 = document.getElementById('searching-modal');
         if (searchingModal2) searchingModal2.style.display = 'none';
-        isSearching = false;
+        appState.isSearching = false;
         break;
     }
   };
@@ -374,35 +379,38 @@ function setupDataChannel(channel) {
 }
 
 function sendCompatibilityUpdate() {
-  if (dataChannel && dataChannel.readyState === 'open') {
-    dataChannel.send(JSON.stringify({
+  if (appState.dataChannel?.readyState === 'open') {
+    appState.dataChannel.send(JSON.stringify({
       type: 'compatibility_update',
-      value: coupleProgress.compatibility
+      value: appState.coupleProgress.compatibility
     }));
   }
 }
 
 function sendEmotionSnapshot() {
-  if (dataChannel && dataChannel.readyState === 'open') {
-    dataChannel.send(JSON.stringify({
+  if (appState.dataChannel?.readyState === 'open') {
+    appState.dataChannel.send(JSON.stringify({
       type: 'emotion_snapshot',
-      emotions: soulAI.emotions
+      emotions: appState.soulAI.emotions
     }));
   }
 }
 
 async function loadFaceModel() {
+  if (window.faceModelLoaded) return;
   await faceapi.nets.tinyFaceDetector.loadFromUri('/models');
   await faceapi.nets.faceExpressionNet.loadFromUri('/models');
   console.log('✅ Модель AI загружена');
+  window.faceModelLoaded = true;
 }
 
 async function analyzeFacialEmotions(videoElement) {
-  if (!videoElement || !videoElement.srcObject) return;
+  if (!videoElement?.srcObject) return;
   const detections = await faceapi.detectAllFaces(
     videoElement,
     new faceapi.TinyFaceDetectorOptions()
   ).withFaceExpressions();
+
   if (detections.length > 0) {
     const expressions = detections[0].expressions;
     updateEmotionStats(expressions);
@@ -412,95 +420,121 @@ async function analyzeFacialEmotions(videoElement) {
 }
 
 function updateEmotionStats(expressions) {
-  soulAI.emotions.happy += expressions.happy || 0;
-  soulAI.emotions.neutral += expressions.neutral || 0;
-  soulAI.emotions.surprised += expressions.surprised || 0;
-  soulAI.emotions.focused += expressions.concentrating || 0;
+  appState.soulAI.emotions.happy += expressions.happy || 0;
+  appState.soulAI.emotions.neutral += expressions.neutral || 0;
+  appState.soulAI.emotions.surprised += expressions.surprised || 0;
+  appState.soulAI.emotions.focused += expressions.concentrating || 0;
 }
 
 function generateAISuggestion(expressions) {
-  if (soulAI.adviceCooldown) return;
-  soulAI.adviceCooldown = true;
-  setTimeout(() => { soulAI.adviceCooldown = false; }, 8000);
+  if (appState.soulAI.adviceCooldown) return;
+  appState.soulAI.adviceCooldown = true;
+  setTimeout(() => { appState.soulAI.adviceCooldown = false; }, 8000);
+
   const adviceEl = document.getElementById('ai-advice');
   const msgEl = document.getElementById('ai-message');
   if (!adviceEl || !msgEl) return;
+
   adviceEl.style.display = 'block';
+
+  let message = "";
+  let loveBonus = 0;
+
   if (expressions.happy > 0.7) {
-    msgEl.textContent = "Она улыбается — продолжай шутить!";
-    showLove(0.5);
+    message = "Она улыбается — скажи комплимент про её глаза!";
+    loveBonus = 0.5;
   } else if (expressions.neutral > 0.8) {
-    msgEl.textContent = "Она сосредоточена — задай личный вопрос";
+    message = "Она задумалась — спроси: 'О чём мечтаешь?'";
+    loveBonus = 0.3;
   } else if (expressions.surprised > 0.6) {
-    msgEl.textContent = "Она удивлена — развивай тему!";
+    message = "Она удивлена — расскажи неожиданный факт о себе!";
+    loveBonus = 0.4;
   } else {
-    msgEl.textContent = "Отличная химия! Продолжайте 👏";
+    message = "Ваша химия — 10/10! Продолжайте в том же духе 💜";
+    loveBonus = 0.2;
   }
+
+  msgEl.textContent = message;
+  if (loveBonus > 0) showLove(loveBonus);
+
+  // Генерируем shareable-момент
+  if (expressions.happy > 0.8 && !appState.sharedMoment) {
+    setTimeout(() => {
+      const videoUrl = "https://soulmine.video/share/abc123"; // Заглушка
+      const shareText = `AI SoulMine говорит: мы совместимы на ${appState.coupleProgress.compatibility.toFixed(0)}%! 🎥 Посмотри, как мы смеялись вместе: ${videoUrl}`;
+      showViralToast("🎥 AI создал для вас видео-момент! Поделитесь им!");
+      appState.sharedMoment = true;
+      unlockAchievement('shared_moment', 'Вирусный Момент', 'Вы поделились AI-совместимостью!', '🎥');
+    }, 10000);
+  }
+
   setTimeout(() => { adviceEl.style.display = 'none'; }, 6000);
 }
 
 function updateCompatibility() {
-  const total = soulAI.emotions.happy + soulAI.emotions.neutral + soulAI.emotions.surprised + soulAI.emotions.focused;
+  const total = Object.values(appState.soulAI.emotions).reduce((a, b) => a + b, 0);
   if (total === 0) return;
-  const happyRatio = soulAI.emotions.happy / total;
-  const focusedRatio = soulAI.emotions.focused / total;
+
+  const happyRatio = appState.soulAI.emotions.happy / total;
+  const focusedRatio = appState.soulAI.emotions.focused / total;
+
   if (happyRatio > 0.3 || focusedRatio > 0.3) {
-    coupleProgress.compatibility = Math.min(100, coupleProgress.compatibility + 0.5);
-    console.log(`❤️ Совместимость: ${coupleProgress.compatibility.toFixed(1)}%`);
+    appState.coupleProgress.compatibility = Math.min(100, appState.coupleProgress.compatibility + 0.5);
+    console.log(`❤️ Совместимость: ${appState.coupleProgress.compatibility.toFixed(1)}%`);
     sendCompatibilityUpdate();
     checkCoupleNFTs();
   }
 }
 
 async function startVideoCall(isIncoming = false) {
-  if (isCalling) return;
+  if (appState.isCalling) return;
+
   const modal = document.getElementById('video-modal');
   if (!modal) return;
   modal.style.display = 'flex';
 
   try {
-    localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+    appState.localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
     const localVideo = document.getElementById('local-video');
-    if (localVideo) localVideo.srcObject = localStream;
+    if (localVideo) localVideo.srcObject = appState.localStream;
 
-    if (!peerConnection) {
+    if (!appState.peerConnection) {
       initPeerConnection();
     }
 
-    localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+    appState.localStream.getTracks().forEach(track => appState.peerConnection.addTrack(track, appState.localStream));
 
-    peerConnection.ontrack = (event) => {
+    appState.peerConnection.ontrack = (event) => {
       const remoteVideo = document.getElementById('remote-video');
       if (remoteVideo) remoteVideo.srcObject = event.streams[0];
     };
 
-    peerConnection.onicecandidate = (event) => {
-      if (event.candidate && ws && ws.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify({
+    appState.peerConnection.onicecandidate = (event) => {
+      if (event.candidate && appState.ws?.readyState === WebSocket.OPEN) {
+        appState.ws.send(JSON.stringify({
           type: 'candidate',
           candidate: event.candidate,
-          to: callPartnerAddress
+          to: appState.callPartnerAddress
         }));
       }
     };
 
-    if (isIncoming) {
-      // Ждем offer через ws
-    } else {
-      if (!callPartnerAddress) {
-        const partner = prompt("Введите адрес кошелька собеседника для звонка:");
+    if (!isIncoming) {
+      if (!appState.callPartnerAddress) {
+        const partner = prompt("Введите адрес кошелька собеседника:");
         if (!partner) {
           modal.style.display = 'none';
           return;
         }
-        callPartnerAddress = partner;
+        appState.callPartnerAddress = partner;
       }
-      const offer = await peerConnection.createOffer();
-      await peerConnection.setLocalDescription(offer);
-      ws.send(JSON.stringify({
+
+      const offer = await appState.peerConnection.createOffer();
+      await appState.peerConnection.setLocalDescription(offer);
+      appState.ws.send(JSON.stringify({
         type: 'offer',
         sdp: offer,
-        to: callPartnerAddress
+        to: appState.callPartnerAddress
       }));
       console.log('📤 Отправлено SDP-offer');
     }
@@ -508,30 +542,51 @@ async function startVideoCall(isIncoming = false) {
     setTimeout(() => {
       const statusEl = document.getElementById('video-status');
       if (statusEl) statusEl.textContent = 'Соединение установлено';
-      callStartTime = new Date();
+      appState.callStartTime = new Date();
       startCallTimer();
       startMiningEffect();
-      userBehavior.usedVideo = true;
-      isCalling = true;
-      if (callHistory.length === 0) {
-        awardCitizenNFT();
+      appState.userBehavior.usedVideo = true;
+      appState.isCalling = true;
+      appState.userBehavior.initiatedChats++;
+
+      // 🔥 Первый звонок = ритуал посвящения
+      if (appState.callHistory.length === 0) {
+        setTimeout(() => {
+          const ritualModal = document.createElement('div');
+          ritualModal.className = 'modal';
+          ritualModal.style.display = 'flex';
+          ritualModal.innerHTML = `
+            <div class="modal-content" style="text-align: center; background: linear-gradient(135deg, #0a0a2a, #1a1a4a);">
+              <div style="font-size: 3rem; margin-bottom: 20px;">📞</div>
+              <h2 style="color: #00D1B2; margin-bottom: 20px;">Поздравляем с первым звонком!</h2>
+              <p>Вы официально — Гражданин SoulMine!</p>
+              <div style="background: rgba(0, 209, 178, 0.2); padding: 20px; border-radius: 15px; margin: 20px 0;">
+                <p><strong>🎁 Ваша награда:</strong></p>
+                <p>+100 $LOVE</p>
+                <p>NFT: "Гражданин SoulMine"</p>
+              </div>
+              <button onclick="document.body.removeChild(this.parentElement.parentElement); 
+                showLove(100); 
+                unlockAchievement('first_call', 'Первый Звонок', 'Совершил первый звонок в SoulMine!', '📞');
+                " class="btn btn-primary" style="width: 100%;">✨ Получить награду</button>
+            </div>
+          `;
+          document.body.appendChild(ritualModal);
+        }, 5000);
       }
     }, 2000);
 
     setInterval(() => {
-      if (isCalling) {
+      if (appState.isCalling) {
         const remoteVideo = document.getElementById('remote-video');
-        if (remoteVideo && remoteVideo.srcObject) {
+        if (remoteVideo?.srcObject) {
           analyzeFacialEmotions(remoteVideo);
           updateCompatibility();
         }
       }
     }, 3000);
 
-    if (!window.faceModelLoaded) {
-      await loadFaceModel();
-      window.faceModelLoaded = true;
-    }
+    await loadFaceModel();
 
   } catch (error) {
     console.error("❌ Ошибка в startVideoCall:", error);
@@ -541,9 +596,9 @@ async function startVideoCall(isIncoming = false) {
 }
 
 function startCallTimer() {
-  callTimer = setInterval(() => {
+  appState.callTimer = setInterval(() => {
     const now = new Date();
-    const diff = new Date(now - callStartTime);
+    const diff = new Date(now - appState.callStartTime);
     const mins = String(diff.getMinutes()).padStart(2, '0');
     const secs = String(diff.getSeconds()).padStart(2, '0');
     const timerEl = document.getElementById('video-timer');
@@ -552,45 +607,45 @@ function startCallTimer() {
 }
 
 function startMiningEffect() {
-  miningInterval = setInterval(() => {
-    if (isCalling) {
+  appState.miningInterval = setInterval(() => {
+    if (appState.isCalling) {
       showLove(0.3);
       triggerMiningEffect("+0.3 $LOVE");
+      updateQuestProgress("complete_call");
     }
   }, 30000);
 }
 
 function endVideoCall() {
-  if (callTimer) clearInterval(callTimer);
-  if (miningInterval) clearInterval(miningInterval);
-  if (localStream) localStream.getTracks().forEach(t => t.stop());
-  if (peerConnection) peerConnection.close();
-  peerConnection = null;
+  if (appState.callTimer) clearInterval(appState.callTimer);
+  if (appState.miningInterval) clearInterval(appState.miningInterval);
+  if (appState.localStream) appState.localStream.getTracks().forEach(t => t.stop());
+  if (appState.peerConnection) appState.peerConnection.close();
+  appState.peerConnection = null;
 
-  const durationMs = callStartTime ? (new Date() - callStartTime) : 0;
+  const durationMs = appState.callStartTime ? (new Date() - appState.callStartTime) : 0;
   const minutes = Math.floor(durationMs / 60000);
 
   const callRecord = {
     id: Date.now().toString(36),
-    partner: callPartnerAddress,
-    startTime: callStartTime?.toISOString() || new Date().toISOString(),
+    partner: appState.callPartnerAddress,
+    startTime: appState.callStartTime?.toISOString() || new Date().toISOString(),
     duration: minutes,
-    compatibility: coupleProgress.compatibility,
-    emotions: { ...soulAI.emotions },
+    compatibility: appState.coupleProgress.compatibility,
+    emotions: { ...appState.soulAI.emotions },
     earnedLove: minutes * 0.3
   };
 
-  callHistory.push(callRecord);
+  appState.callHistory.push(callRecord);
   saveCallHistory();
-  addLove(callRecord.earnedLove);
-  upgradeCitizenLevel();
+  showLove(callRecord.earnedLove);
+  updateQuestProgress("complete_call");
 
-  // Отправляем данные в Telegram-бот
   sendWebAppData({
     type: "call_ended",
     duration: minutes,
-    compatibility: coupleProgress.compatibility,
-    messages: userBehavior.messagesSent,
+    compatibility: appState.coupleProgress.compatibility,
+    messages: appState.userBehavior.messagesSent,
     earned: callRecord.earnedLove
   });
 
@@ -602,23 +657,29 @@ function endVideoCall() {
     if (modal) modal.style.display = 'none';
   }, 2000);
 
-  isCalling = false;
-  callStartTime = null;
-  callPartnerAddress = null;
+  appState.isCalling = false;
+  appState.callStartTime = null;
+  appState.callPartnerAddress = null;
+
+  // 🔥 Разблокировка достижения за длительный звонок
+  if (minutes >= 5) {
+    unlockAchievement('long_call', 'Марафон Любви', 'Звонок длился 5+ минут!', '⏱️');
+  }
 }
 
 function connectToSignalingServer() {
-  if (ws && ws.readyState === WebSocket.OPEN) return;
-  ws = new WebSocket(SIGNALING_SERVER_URL);
+  if (appState.ws?.readyState === WebSocket.OPEN) return;
 
-  ws.onopen = () => {
+  appState.ws = new WebSocket(CONFIG.SIGNALING_SERVER_URL);
+
+  appState.ws.onopen = () => {
     console.log('✅ Подключено к сигналь-серверу');
-    if (userAddress) {
-      ws.send(JSON.stringify({ type: 'register', address: userAddress }));
+    if (appState.userAddress) {
+      appState.ws.send(JSON.stringify({ type: 'register', address: appState.userAddress }));
     }
   };
 
-  ws.onmessage = async (event) => {
+  appState.ws.onmessage = async (event) => {
     const data = JSON.parse(event.data);
     console.log('📩 Получен сигнал:', data);
     switch (data.type) {
@@ -633,65 +694,62 @@ function connectToSignalingServer() {
         break;
       case 'call_request':
         if (confirm(`Входящий звонок от ${data.from}! Принять?`)) {
-          callPartnerAddress = data.from;
+          appState.callPartnerAddress = data.from;
           await startVideoCall(true);
-          ws.send(JSON.stringify({ type: 'call_accept', to: data.from }));
+          appState.ws.send(JSON.stringify({ type: 'call_accept', to: data.from }));
         } else {
-          ws.send(JSON.stringify({ type: 'call_reject', to: data.from }));
+          appState.ws.send(JSON.stringify({ type: 'call_reject', to: data.from }));
         }
         break;
       case 'random_match_found':
-        callPartnerAddress = data.partner;
-        alert(`🎉 Найден собеседник! Начинаем звонок...`);
+        appState.callPartnerAddress = data.partner;
+        alert(`🎉 Найден собеседник!`);
         const searchingModal = document.getElementById('searching-modal');
         if (searchingModal) searchingModal.style.display = 'none';
-        isSearching = false;
+        appState.isSearching = false;
         const matchBtn = document.getElementById('random-match-btn');
         if (matchBtn) matchBtn.textContent = '💘 Найти случайную пару';
         await startVideoCall(true);
         break;
-      case 'find_ai_soulmate':
-        // Обработка на стороне сервера
-        break;
       case 'ai_match_found':
-        callPartnerAddress = data.partner;
+        appState.callPartnerAddress = data.partner;
         alert(`🎯 AI нашел вам идеальную пару! Совместимость: ${(data.compatibilityScore * 100).toFixed(0)}%`);
         const searchingModalAI = document.getElementById('searching-modal');
         if (searchingModalAI) searchingModalAI.style.display = 'none';
-        isSearching = false;
+        appState.isSearching = false;
         await startVideoCall(true);
         break;
       case 'ai_match_not_found':
-        alert(data.message || 'Подходящих собеседников не найдено. Попробуйте позже.');
+        alert(data.message || 'Подходящих собеседников не найдено.');
         const searchingModalNotFound = document.getElementById('searching-modal');
         if (searchingModalNotFound) searchingModalNotFound.style.display = 'none';
-        isSearching = false;
+        appState.isSearching = false;
         break;
     }
   };
 
-  ws.onclose = () => {
-    console.log('🔌 Соединение с сервером закрыто');
+  appState.ws.onclose = () => {
+    console.log('🔌 Соединение закрыто');
     setTimeout(connectToSignalingServer, 3000);
   };
 
-  ws.onerror = (error) => {
+  appState.ws.onerror = (error) => {
     console.error('❌ Ошибка WebSocket:', error);
   };
 }
 
 async function handleOffer(data) {
-  if (!peerConnection) {
+  if (!appState.peerConnection) {
     initPeerConnection();
-    localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-    localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
-    peerConnection.ontrack = (event) => {
+    appState.localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+    appState.localStream.getTracks().forEach(track => appState.peerConnection.addTrack(track, appState.localStream));
+    appState.peerConnection.ontrack = (event) => {
       const remoteVideo = document.getElementById('remote-video');
       if (remoteVideo) remoteVideo.srcObject = event.streams[0];
     };
-    peerConnection.onicecandidate = (event) => {
-      if (event.candidate && ws && ws.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify({
+    appState.peerConnection.onicecandidate = (event) => {
+      if (event.candidate && appState.ws?.readyState === WebSocket.OPEN) {
+        appState.ws.send(JSON.stringify({
           type: 'candidate',
           candidate: event.candidate,
           to: data.from
@@ -700,10 +758,10 @@ async function handleOffer(data) {
     };
   }
 
-  await peerConnection.setRemoteDescription(new RTCSessionDescription(data.sdp));
-  const answer = await peerConnection.createAnswer();
-  await peerConnection.setLocalDescription(answer);
-  ws.send(JSON.stringify({
+  await appState.peerConnection.setRemoteDescription(new RTCSessionDescription(data.sdp));
+  const answer = await appState.peerConnection.createAnswer();
+  await appState.peerConnection.setLocalDescription(answer);
+  appState.ws.send(JSON.stringify({
     type: 'answer',
     sdp: answer,
     to: data.from
@@ -712,19 +770,19 @@ async function handleOffer(data) {
 }
 
 async function handleAnswer(data) {
-  await peerConnection.setRemoteDescription(new RTCSessionDescription(data.sdp));
+  await appState.peerConnection.setRemoteDescription(new RTCSessionDescription(data.sdp));
   console.log('✅ Получен answer, соединение установлено');
 }
 
 async function handleCandidate(data) {
-  await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
+  await appState.peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
 }
 
 // === AR-фильтры ===
 function applyFilter(filter) {
   document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
   event.target.classList.add('active');
-  currentFilter = filter;
+  appState.currentFilter = filter;
   const effects = document.getElementById('ar-effects');
   if (!effects) return;
   effects.innerHTML = '';
@@ -737,7 +795,7 @@ function startHeartsEffect() {
   const effects = document.getElementById('ar-effects');
   if (!effects) return;
   setInterval(() => {
-    if (currentFilter !== 'hearts') return;
+    if (appState.currentFilter !== 'hearts') return;
     const heart = document.createElement('img');
     heart.src = 'https://cdn-icons-png.flaticon.com/128/833/833472.png';
     heart.style.cssText = `position:absolute;width:${Math.random()*20+20}px;left:${Math.random()*80+10}%;top:80%;opacity:0;transition:top 3s ease,opacity 3s;`;
@@ -761,7 +819,7 @@ function startConfettiEffect() {
   if (!effects) return;
   ['🎉', '🎊', '✨', '🎈'].forEach(emoji => {
     setTimeout(() => {
-      if (currentFilter === 'party') {
+      if (appState.currentFilter === 'party') {
         const confetti = document.createElement('div');
         confetti.textContent = emoji;
         confetti.style.cssText = `position:absolute;font-size:20px;left:${Math.random()*100}%;top:-20px;animation:fall-confetti 5s linear forwards;`;
@@ -772,17 +830,21 @@ function startConfettiEffect() {
 }
 
 function captureMoment() {
-  const nftName = currentFilter === 'hearts' ? "Магия любви" :
-                  currentFilter === 'ton' ? "Чемпион TON" :
-                  currentFilter === 'party' ? "Король вечеринки" : "Обычный момент";
-  const image = { hearts: "❤️", ton: "💎", party: "🎉", default: "📷" }[currentFilter] || "📷";
+  const nftName = appState.currentFilter === 'hearts' ? "Магия любви" :
+                  appState.currentFilter === 'ton' ? "Чемпион TON" :
+                  appState.currentFilter === 'party' ? "Король вечеринки" : "Обычный момент";
+  const image = { hearts: "❤️", ton: "💎", party: "🎉", default: "📷" }[appState.currentFilter] || "📷";
   showNFTModal({ name: nftName, image });
-  addLove(5);
+  showLove(5);
+  updateQuestProgress("capture_moment");
+  unlockAchievement('capture_moment', 'Фотограф Любви', 'Сделали снимок с AR-фильтром!', '📸');
 }
 
-// === Экспортируем функции для глобального доступа ===
+// === Экспорт ===
 window.initSwipeArea = initSwipeArea;
 window.openChatWithCurrent = openChatWithCurrent;
 window.startVoiceCallWithCurrent = startVoiceCallWithCurrent;
 window.startVideoCallWithCurrent = startVideoCallWithCurrent;
 window.sendWebAppData = sendWebAppData;
+window.endVideoCall = endVideoCall;
+window.connectToSignalingServer = connectToSignalingServer;
