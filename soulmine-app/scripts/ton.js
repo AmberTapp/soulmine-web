@@ -1,3 +1,5 @@
+// ton.js — Интеграция TON + Telegram Web App (Production-Ready)
+
 import { appState, CONFIG, updateQuestProgress, checkHasNFT, checkSentTransaction, showViralToast, unlockAchievement } from './utils.js';
 
 // ========================
@@ -33,34 +35,28 @@ async function updateConnectionState() {
     const address = connector.wallet.account.address.toLowerCase();
     appState.userAddress = address;
 
-    // ✅ UI: отображаем адрес
     walletInfo.style.display = 'block';
     walletInfo.innerHTML = `<strong>Адрес:</strong> ${address.slice(0, 8)}...${address.slice(-6)}`;
 
     const addressDisplay = document.getElementById('wallet-address-display');
     if (addressDisplay) addressDisplay.textContent = `${address.slice(0, 8)}...${address.slice(-6)}`;
 
-    // ✅ Получаем баланс $LOVE
     const balanceStr = await getLoveBalance(address);
     const balanceNum = parseFloat(balanceStr.replace('—', '0').replace(/,/g, '')) || 0;
     appState.cache.loveBalance = balanceNum;
     profileBalance.textContent = `${balanceStr} $LOVE`;
 
-    // ✅ Автоматические квесты
     updateQuestProgress("connect_wallet");
 
-    // 🔍 Проверяем транзакции и NFT через 1 сек
     setTimeout(() => {
       checkSentTransaction(address);
       checkHasNFT(address);
     }, 1000);
 
-    // 📡 Сигналинг (если реализован)
     if (typeof connectToSignalingServer === 'function') {
       connectToSignalingServer();
     }
 
-    // ✅ Отправляем данные в Telegram WebApp
     if (window.Telegram?.WebApp?.sendData) {
       window.Telegram.WebApp.sendData(JSON.stringify({
         type: "wallet_connected",
@@ -70,7 +66,6 @@ async function updateConnectionState() {
       }));
     }
 
-    // 🔥 Ритуал посвящения — только при первом подключении
     const isFirstLoginKey = `soulmine_first_login_${address}`;
     if (!localStorage.getItem(isFirstLoginKey)) {
       localStorage.setItem(isFirstLoginKey, '1');
@@ -115,7 +110,6 @@ async function updateConnectionState() {
         }, 15000);
       }, 3000);
 
-      // ✅ Отправляем событие в бота для аналитики
       if (window.Telegram?.WebApp?.sendData) {
         window.Telegram.WebApp.sendData(JSON.stringify({
           type: "first_login",
@@ -125,7 +119,6 @@ async function updateConnectionState() {
       }
     }
 
-    // 🚀 ВИРУСНЫЙ ТРИГГЕР: ссылка для рефералов
     setTimeout(() => {
       const refLink = `https://t.me/LoveSoulMine_Bot?start=ref_${encodeURIComponent(address)}`;
       const shareText = `Я присоединился к SoulMine — Вселенной Любви на TON! 💜\nПолучил 50 $LOVE за регистрацию!\nПрисоединяйся → ${refLink}`;
@@ -147,7 +140,6 @@ async function updateConnectionState() {
     }, 10000);
 
   } else {
-    // ✅ Сброс состояния при отключении кошелька
     appState.userAddress = null;
     walletInfo.style.display = 'none';
     profileBalance.textContent = "Загрузка...";
@@ -251,7 +243,7 @@ async function loadNFTs(address) {
 
     nfts.forEach(nft => {
       const preview = nft.previews?.find(p => p.resolution === '100x100') || nft.previews?.[0];
-      const imageUrl = preview?.url || 'https://via.placeholder.com/100'; // ✅ УБРАНЫ ПРОБЕЛЫ
+      const imageUrl = preview?.url || 'https://via.placeholder.com/100'; // ✅ ЧИСТЫЙ URL
       const name = nft.metadata?.name || 'Без имени';
       const collection = nft.collection?.name || 'Неизвестная коллекция';
 
