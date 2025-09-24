@@ -647,4 +647,3 @@ window.addEventListener('beforeunload', () => {
   saveToStorage(CONFIG.STORAGE_KEYS.QUESTS, appState.quests);
   saveCallHistory(); // ✅ Сохраняем историю звонков
 });
-
