@@ -1,7 +1,3 @@
-// ========================
-// 🌐 ГЛОБАЛЬНЫЕ КОНСТАНТЫ И СОСТОЯНИЕ
-// ========================
-
 const appState = {
   userAddress: null,
   isCalling: false,
@@ -651,3 +647,4 @@ window.addEventListener('beforeunload', () => {
   saveToStorage(CONFIG.STORAGE_KEYS.QUESTS, appState.quests);
   saveCallHistory(); // ✅ Сохраняем историю звонков
 });
+
