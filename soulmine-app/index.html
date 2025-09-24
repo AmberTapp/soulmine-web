@@ -44,15 +44,15 @@
 
       <!-- 🚀 КНОПКИ ССЫЛОК НА БОТА, КАНАЛ И СУППОРТ -->
       <div style="display: flex; flex-direction: column; gap: 10px; margin: 20px 0;">
-        <button onclick="window.Telegram?.WebApp.openLink('https://t.me/LoveSoulMine_Bot')" 
+        <button onclick="openInTelegram('https://t.me/LoveSoulMine_Bot')" 
                 class="btn btn-secondary" style="width: 100%; padding: 12px; font-size: 16px;">
           🤖 Перейти в Telegram-бота
         </button>
-        <button onclick="window.Telegram?.WebApp.openLink('https://t.me/SoulMineNews')" 
+        <button onclick="openInTelegram('https://t.me/SoulMineNews')" 
                 class="btn btn-secondary" style="width: 100%; padding: 12px; font-size: 16px;">
           📣 Подписаться на канал
         </button>
-        <button onclick="window.Telegram?.WebApp.openLink('https://t.me/SoulMineSupport')" 
+        <button onclick="openInTelegram('https://t.me/SoulMineSupport')" 
                 class="btn btn-secondary" style="width: 100%; padding: 12px; font-size: 16px;">
           ❓ Обратиться в суппорт
         </button>
@@ -93,17 +93,30 @@
   <script src="./scripts/utils.js" type="module"></script>
   <script src="./scripts/ton.js" type="module"></script>
   <script src="./scripts/main.js" type="module"></script>
-  <script src="./scripts/webrtc.js" type="module"></script>
+  <script src="./scripts/video-call.js" type="module"></script>
   <script src="./scripts/dao.js" type="module"></script>
   <script src="./scripts/contacts.js" type="module"></script>
 
   <script>
     // Копирование реферальной ссылки
     function copyReferralLink() {
-      const refLink = `https://t.me/LoveSoulMine_Bot?start=ref_${encodeURIComponent(appState.userAddress || 'unknown')}`;
+      if (!appState.userAddress) {
+        showViralToast("❌ Сначала подключите кошелёк!");
+        return;
+      }
+      const refLink = `https://t.me/LoveSoulMine_Bot?start=ref_${encodeURIComponent(appState.userAddress)}`;
       navigator.clipboard.writeText(refLink)
         .then(() => showViralToast("🔗 Ссылка скопирована! Пригласите друзей и получите NFT!"))
         .catch(err => showViralToast("❌ Не удалось скопировать ссылку"));
+    }
+
+    // Открытие ссылки в Telegram
+    function openInTelegram(url) {
+      if (window.Telegram?.WebApp?.openLink) {
+        window.Telegram.WebApp.openLink(url);
+      } else {
+        window.open(url, '_blank');
+      }
     }
 
     // Загружаем Telegram Web App API
