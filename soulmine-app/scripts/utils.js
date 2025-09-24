@@ -1,3 +1,5 @@
+// utils.js — Глобальные функции и состояние (Senior Dev Edition)
+
 const appState = {
   userAddress: null,
   isCalling: false,
@@ -49,7 +51,7 @@ const appState = {
     coupleNFTs: []
   },
 
-  // Квесты (логика, не UI)
+  // Квесты
   quests: [
     { id: "connect_wallet", title: "Подключите кошелёк", description: "Станьте частью движения #LoveOnTON", goal: 1, progress: 0, reward: { love: 50, nft: "Апостол Любви" }, completed: false },
     { id: "first_call", title: "Совершите первый звонок", description: "Получите 100 $LOVE и NFT Гражданина", goal: 1, progress: 0, reward: { love: 100, nft: "Гражданин SoulMine" }, completed: false },
@@ -77,7 +79,7 @@ const CONFIG = {
   JETTON_MASTER_ADDRESS: 'EQAf1n9pHB4gITeBj4VA6jYKa4QKAs7e1z5SSQY3DnYme-Yj',
   DAO_CONTRACT_ADDRESS: 'EQB...', // Заменить на реальный адрес DAO
   SIGNALING_SERVER_URL: 'wss://soulmine-signaling.fly.dev',
-  TON_MANIFEST_URL: 'https://soulmine-web.vercel.app/tonconnect-manifest.json', // ✅ ИСПРАВЛЕНО: УБРАНЫ ПРОБЕЛЫ
+  TON_MANIFEST_URL: 'https://soulmine-web.vercel.app/tonconnect-manifest.json', // ✅ УБРАНЫ ПРОБЕЛЫ
   STORAGE_KEYS: {
     USER_ADDRESS: 'soulmine_user_address',
     SOUL_AI: 'soulmine_soul_ai',
@@ -91,7 +93,7 @@ const CONFIG = {
 };
 
 // ========================
-// 💾 ХЕЛПЕРЫ ДЛЯ localStorage + ТОН
+// 💾 ХЕЛПЕРЫ ДЛЯ localStorage
 // ========================
 
 function saveToStorage(key, data) {
@@ -126,7 +128,6 @@ appState.contacts = loadFromStorage(CONFIG.STORAGE_KEYS.CONTACTS, appState.conta
 // ========================
 
 function getShareText() {
-  // ✅ Используем encodeURIComponent для безопасного URL
   const refLink = `https://t.me/LoveSoulMine_Bot?start=ref_${encodeURIComponent(appState.userAddress || '')}`;
   return `Я заработал ${appState.cache.loveBalance} $LOVE в SoulMine! 💜\nМоя AI-совместимость: ${appState.coupleProgress.compatibility.toFixed(0)}%\nПрисоединяйся → ${refLink}`;
 }
@@ -135,10 +136,9 @@ async function tryShare(shareText) {
   if (!shareText) return false;
 
   try {
-    // ✅ ПРИОРИТЕТ: Telegram WebApp (внутри Telegram)
-    if (window.Telegram && window.Telegram.WebApp) {
-      // ✅ ИСПРАВЛЕНО: УБРАНЫ ПРОБЕЛЫ
-      window.Telegram.WebApp.openLink('https://t.me/LoveSoulMine_Bot');
+    // ✅ Telegram WebApp
+    if (window.Telegram?.WebApp) {
+      window.Telegram.WebApp.openLink('https://t.me/LoveSoulMine_Bot'); // ✅ УБРАНЫ ПРОБЕЛЫ
       showViralToast("🔗 Ссылка открыта в Telegram! Поделись и получи +5 $LOVE!");
       localStorage.setItem('shared_love', '1');
       updateQuestProgress("share_achievement");
@@ -172,18 +172,14 @@ async function tryShare(shareText) {
 
 function showLove(amount) {
   if (amount <= 0) return;
-
   addLove(amount);
 
-  // Вирусный триггер: если накопил 10+ $LOVE — предложи поделиться
   if (
     appState.userAddress &&
     appState.cache.loveBalance >= 10 &&
     localStorage.getItem('shared_love') !== '1'
   ) {
-    setTimeout(() => {
-      tryShare(getShareText());
-    }, 5000);
+    setTimeout(() => tryShare(getShareText()), 5000);
   }
 }
 
@@ -195,12 +191,11 @@ function addLove(amount) {
       const clean = current.replace('—', '0').replace(/,/g, '');
       const currentNum = parseFloat(clean) || 0;
       const newBalance = currentNum + amount;
-      appState.cache.loveBalance = Math.max(0, newBalance); // Не ниже нуля
+      appState.cache.loveBalance = Math.max(0, newBalance);
       updateUIBalance(newBalance.toFixed(4));
     })
     .catch(err => {
       console.error('❌ Ошибка получения баланса:', err);
-      // Fallback: если API недоступно — просто увеличиваем локально
       appState.cache.loveBalance = (appState.cache.loveBalance || 0) + amount;
       updateUIBalance(appState.cache.loveBalance.toFixed(4));
     });
@@ -226,11 +221,8 @@ function appendChatMessage(text, sender) {
   messages.appendChild(msg);
   messages.scrollTop = messages.scrollHeight;
 
-  // Обновляем поведение
   appState.userBehavior.messagesSent++;
   appState.coupleProgress.messages++;
-
-  // Прогресс по квесту "swipe_like" — каждое сообщение = свайп
   updateQuestProgress("swipe_like");
 }
 
@@ -254,14 +246,12 @@ function updateQuestProgress(questId, increment = 1) {
 function completeQuest(quest) {
   quest.completed = true;
 
-  // 🎉 Эффекты
   if (typeof confetti === 'function') {
     confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
   }
 
-  // 💰 Награды
   if (quest.reward.love > 0) {
-    showLove(quest.reward.love); // Используем showLove для вирусного триггера
+    showLove(quest.reward.love);
   }
 
   if (quest.reward.nft) {
@@ -271,7 +261,6 @@ function completeQuest(quest) {
 
   saveQuests();
 
-  // ✅ Автоматический ререндер, если пользователь на экране квестов
   if (document.getElementById('quests-list')) {
     renderQuests();
   }
@@ -290,10 +279,7 @@ function renderQuests() {
   appState.quests.forEach(quest => {
     const progressPercent = Math.min(100, Math.floor((quest.progress / quest.goal) * 100));
     const isCompleted = quest.completed;
-
-    const rewardText = `
-      🎁 +${quest.reward.love} $LOVE${quest.reward.nft ? `, NFT "${quest.reward.nft}"` : ''}
-    `;
+    const rewardText = `🎁 +${quest.reward.love} $LOVE${quest.reward.nft ? `, NFT "${quest.reward.nft}"` : ''}`;
 
     const div = document.createElement('div');
     div.className = `quest-item ${isCompleted ? 'completed' : ''}`;
@@ -321,7 +307,6 @@ function unlockAchievement(id, title, description, icon) {
   achievements.push(id);
   localStorage.setItem(CONFIG.STORAGE_KEYS.ACHIEVEMENTS, JSON.stringify(achievements));
 
-  // 🎯 Модалка достижения
   const modal = document.createElement('div');
   modal.className = 'modal';
   modal.style.cssText = `
@@ -346,7 +331,6 @@ function unlockAchievement(id, title, description, icon) {
   `;
   document.body.appendChild(modal);
 
-  // Автоматически закрывать через 5 сек, если не нажали
   setTimeout(() => {
     if (modal.parentElement) modal.parentElement.remove();
   }, 5000);
@@ -402,7 +386,6 @@ function saveCoupleNFT(nft) {
 
 function loadCallHistory() {
   if (!appState.userAddress) return;
-
   const key = `${CONFIG.STORAGE_KEYS.CALL_HISTORY}${appState.userAddress}`;
   const saved = loadFromStorage(key, []);
   appState.callHistory = saved;
@@ -410,11 +393,9 @@ function loadCallHistory() {
 
 function saveCallHistory() {
   if (!appState.userAddress) return;
-
   const key = `${CONFIG.STORAGE_KEYS.CALL_HISTORY}${appState.userAddress}`;
   saveToStorage(key, appState.callHistory);
 
-  // ✅ Сохраняем в TON-хранилище каждые 5 записей (если функция доступна)
   if (appState.callHistory.length % 5 === 0 && typeof saveToTonStorage === 'function') {
     saveToTonStorage(appState.callHistory, `call_history_${appState.userAddress}.json`);
   }
@@ -437,7 +418,6 @@ function renderCallHistory() {
       hour: '2-digit',
       minute: '2-digit'
     });
-
     const partner = call.partner ? `${call.partner.slice(0, 6)}...${call.partner.slice(-4)}` : '—';
 
     const div = document.createElement('div');
@@ -472,7 +452,6 @@ window.showScreen = function(id) {
   const activeBtn = document.querySelector(`.nav-btn[onclick="showScreen('${id}')"]`);
   if (activeBtn) activeBtn.classList.add('active');
 
-  // Загрузка данных по экрану
   switch (id) {
     case 'main-screen':
       document.querySelector('.movement-banner')?.style.setProperty('display', 'block');
@@ -571,11 +550,10 @@ function triggerMiningEffect(text) {
 }
 
 // ========================
-// 🧩 ЗАГЛУШКИ (для продакшена — заменить на реальные API)
+// 🧩 ЗАГЛУШКИ
 // ========================
 
 function getLoveBalance(address) {
-  // ✅ ЗАМЕНИТЬ НА РЕАЛЬНЫЙ ВЫЗОВ КОНТРАКТА (например, через TonConnect)
   return Promise.resolve("0.0000");
 }
 
@@ -604,8 +582,7 @@ function showPartnerPreview() {
   const randomModel = models[Math.floor(Math.random() * models.length)];
   const img = document.getElementById('partner-preview');
   if (img) {
-    // ✅ ИСПРАВЛЕНО: УБРАН ПРОБЕЛ ПЕРЕД ${randomModel}
-    img.src = `https://soulmine-web.vercel.app/assets/models/${randomModel}.png`;
+    img.src = `https://soulmine-web.vercel.app/assets/models/${randomModel}.png`; // ✅ УБРАНЫ ПРОБЕЛЫ
     img.style.display = 'block';
   }
 }
@@ -615,7 +592,7 @@ function loadTelegramContacts() {
 }
 
 // ========================
-// 🔄 ЭКСПОРТ В ГЛОБАЛЬНЫЙ ОБЪЕКТ
+// 🔄 ЭКСПОРТ
 // ========================
 
 window.appState = appState;
@@ -645,5 +622,5 @@ window.addEventListener('beforeunload', () => {
   saveToStorage(CONFIG.STORAGE_KEYS.SOUL_AI, appState.soulAI);
   saveToStorage(CONFIG.STORAGE_KEYS.USER_BEHAVIOR, appState.userBehavior);
   saveToStorage(CONFIG.STORAGE_KEYS.QUESTS, appState.quests);
-  saveCallHistory(); // ✅ Сохраняем историю звонков
+  saveCallHistory();
 });
