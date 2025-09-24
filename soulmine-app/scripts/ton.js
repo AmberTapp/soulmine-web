@@ -5,13 +5,13 @@ import { appState, CONFIG, updateQuestProgress, checkHasNFT, checkSentTransactio
 // ========================
 
 const connector = new window.TonConnect.UI.Connector({
-  manifestUrl: CONFIG.TON_MANIFEST_URL, // ✅ Проверено: нет пробелов, HTTPS, валидный JSON
+  manifestUrl: CONFIG.TON_MANIFEST_URL,
   buttonRootId: 'ton-connect-button-container'
 });
 
-// ✅ Настраиваем UI для Telegram Web App — ВАЖНО: returnUrl должен быть ЧИСТЫМ
+// ✅ Настраиваем UI для Telegram Web App — ЧИСТЫЙ URL без пробелов
 connector.uiOptions = {
-  twaReturnUrl: 'https://t.me/LoveSoulMine_Bot' // ✅ ИСПРАВЛЕНО: УБРАНЫ ВСЕ ПРОБЕЛЫ
+  twaReturnUrl: 'https://t.me/LoveSoulMine_Bot' // ✅ УБРАНЫ ВСЕ ПРОБЕЛЫ
 };
 
 appState.connector = connector;
@@ -30,7 +30,7 @@ const profileBalance = document.getElementById('profile-balance');
 
 async function updateConnectionState() {
   if (connector.connected && connector.wallet?.account?.address) {
-    const address = connector.wallet.account.address.toLowerCase(); // ✅ Приводим к нижнему регистру для сравнения
+    const address = connector.wallet.account.address.toLowerCase();
     appState.userAddress = address;
 
     // ✅ UI: отображаем адрес
@@ -49,7 +49,7 @@ async function updateConnectionState() {
     // ✅ Автоматические квесты
     updateQuestProgress("connect_wallet");
 
-    // 🔍 Проверяем транзакции и NFT через 1 сек — для избежания race condition
+    // 🔍 Проверяем транзакции и NFT через 1 сек
     setTimeout(() => {
       checkSentTransaction(address);
       checkHasNFT(address);
@@ -110,7 +110,6 @@ async function updateConnectionState() {
         `;
         document.body.appendChild(ritualModal);
 
-        // ✅ Автоматически закрываем через 15 сек, если не нажали
         setTimeout(() => {
           if (ritualModal.parentElement) ritualModal.parentElement.remove();
         }, 15000);
@@ -128,11 +127,9 @@ async function updateConnectionState() {
 
     // 🚀 ВИРУСНЫЙ ТРИГГЕР: ссылка для рефералов
     setTimeout(() => {
-      // ✅ КРИТИЧНО: Используем encodeURIComponent для безопасного URL
       const refLink = `https://t.me/LoveSoulMine_Bot?start=ref_${encodeURIComponent(address)}`;
       const shareText = `Я присоединился к SoulMine — Вселенной Любви на TON! 💜\nПолучил 50 $LOVE за регистрацию!\nПрисоединяйся → ${refLink}`;
 
-      // ✅ Проверка: не пытаемся копировать в не поддерживаемых средах
       navigator.clipboard.writeText(shareText)
         .then(() => {
           showViralToast("💌 Ссылка для друзей скопирована! Пригласите 3 человек — получите NFT 'Амбассадор Любви'!");
@@ -142,7 +139,6 @@ async function updateConnectionState() {
           showViralToast("❌ Не удалось скопировать ссылку. Откройте меню → «Поделиться»");
         });
 
-      // ✅ Дополнительно: открываем ссылку в Telegram, если в TWA
       if (window.Telegram?.WebApp?.openLink) {
         setTimeout(() => {
           window.Telegram.WebApp.openLink(refLink);
@@ -156,31 +152,23 @@ async function updateConnectionState() {
     walletInfo.style.display = 'none';
     profileBalance.textContent = "Загрузка...";
 
-    // ✅ Очищаем NFT-контейнеры
     const nftContainer = document.getElementById('nft-container');
     if (nftContainer) nftContainer.innerHTML = '<div class="nft-empty">Подключите кошелёк</div>';
 
     const coupleNftSection = document.getElementById('couple-nft-section');
     if (coupleNftSection) coupleNftSection.style.display = 'none';
 
-    // ✅ Очищаем кэш, если кошелёк отключён
     appState.cache.loveBalance = null;
     appState.cache.nfts = [];
   }
 }
 
-// ✅ Подписываемся на изменения состояния
 connector.onStatusChange(updateConnectionState);
 
 // ========================
 // 💰 РАБОТА С JETTON ($LOVE)
 // ========================
 
-/**
- * Получает баланс $LOVE через TonAPI
- * @param {string} address — адрес пользователя
- * @returns {Promise<string>} — баланс в формате "123.4567"
- */
 async function getLoveBalance(address) {
   if (!address || typeof address !== 'string') return "0.0000";
 
@@ -191,7 +179,7 @@ async function getLoveBalance(address) {
         'Accept': 'application/json',
         'User-Agent': 'SoulMineBot/1.0 (WebApp)'
       },
-      cache: 'no-store' // ✅ Не кэшируем, чтобы не было stale данных
+      cache: 'no-store'
     });
 
     if (!response.ok) {
@@ -205,24 +193,19 @@ async function getLoveBalance(address) {
       const jettonAddress = jetton.jetton?.address?.toLowerCase();
       if (jettonAddress === CONFIG.JETTON_MASTER_ADDRESS.toLowerCase()) {
         const amount = BigInt(jetton.balance || "0");
-        const decimals = jetton.jetton?.decimals ?? 9; // ✅ Безопасное значение по умолчанию
+        const decimals = jetton.jetton?.decimals ?? 9;
         const balance = Number(amount) / (10 ** decimals);
         return balance.toFixed(4);
       }
     }
 
-    return "0.0000"; // ✅ Явно возвращаем ноль, если не найдено
+    return "0.0000";
   } catch (error) {
     console.error("❌ Ошибка получения баланса $LOVE:", error.message || error);
-    return "—"; // ✅ Возвращаем читаемый дефолт
+    return "—";
   }
 }
 
-/**
- * Возвращает баланс в виде числа (для логики)
- * @param {string} address
- * @returns {number}
- */
 async function getLoveBalanceRaw(address) {
   const balanceStr = await getLoveBalance(address);
   return parseFloat(balanceStr.replace('—', '0').replace(/,/g, '')) || 0;
@@ -232,10 +215,6 @@ async function getLoveBalanceRaw(address) {
 // 🖼️ ЗАГРУЗКА NFT
 // ========================
 
-/**
- * Загружает NFT пользователя через TonAPI
- * @param {string} address — адрес пользователя
- */
 async function loadNFTs(address) {
   if (!address) return;
 
@@ -271,9 +250,8 @@ async function loadNFTs(address) {
     appState.cache.nfts = nfts;
 
     nfts.forEach(nft => {
-      // ✅ Безопасное получение изображения
       const preview = nft.previews?.find(p => p.resolution === '100x100') || nft.previews?.[0];
-      const imageUrl = preview?.url || 'https://via.placeholder.com/100'; // ✅ Чистый URL без пробелов
+      const imageUrl = preview?.url || 'https://via.placeholder.com/100'; // ✅ УБРАНЫ ПРОБЕЛЫ
       const name = nft.metadata?.name || 'Без имени';
       const collection = nft.collection?.name || 'Неизвестная коллекция';
 
@@ -301,10 +279,6 @@ async function loadNFTs(address) {
 // 🔍 АВТОМАТИЧЕСКАЯ ПРОВЕРКА КВЕСТОВ
 // ========================
 
-/**
- * Проверяет, была ли отправлена хотя бы одна транзакция
- * @param {string} address
- */
 async function checkSentTransaction(address) {
   if (!address) return;
 
@@ -336,10 +310,6 @@ async function checkSentTransaction(address) {
   }
 }
 
-/**
- * Проверяет наличие NFT в коллекциях
- * @param {string} address
- */
 async function checkHasNFT(address) {
   if (!address) return;
 
@@ -354,7 +324,6 @@ async function checkHasNFT(address) {
     const data = await response.json();
     const nfts = Array.isArray(data.nft_items) ? data.nft_items : [];
 
-    // ✅ Только NFT из реальных коллекций (не мусорные)
     const realNFTs = nfts.filter(nft => nft.collection && nft.collection.address);
 
     if (realNFTs.length > 0) {
@@ -374,7 +343,6 @@ window.getLoveBalance = getLoveBalance;
 window.getLoveBalanceRaw = getLoveBalanceRaw;
 window.loadNFTs = loadNFTs;
 
-// ✅ ДОПОЛНИТЕЛЬНО: ЭКСПОРТ ДЛЯ ТЕСТОВ И ДЕБАГА
 if (window.DEBUG) {
   window.connector = connector;
   window.updateConnectionState = updateConnectionState;
