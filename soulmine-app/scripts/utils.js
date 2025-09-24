@@ -1,4 +1,4 @@
-// utils.js — Глобальные функции и состояние (Senior Dev Edition)
+// utils.js — Глобальные функции и состояние (Production-Ready)
 
 const appState = {
   userAddress: null,
@@ -79,7 +79,7 @@ const CONFIG = {
   JETTON_MASTER_ADDRESS: 'EQAf1n9pHB4gITeBj4VA6jYKa4QKAs7e1z5SSQY3DnYme-Yj',
   DAO_CONTRACT_ADDRESS: 'EQB...', // Заменить на реальный адрес DAO
   SIGNALING_SERVER_URL: 'wss://soulmine-signaling.fly.dev',
-  TON_MANIFEST_URL: 'https://soulmine-web.vercel.app/tonconnect-manifest.json', // ✅ УБРАНЫ ПРОБЕЛЫ
+  TON_MANIFEST_URL: 'https://soulmine-web.vercel.app/tonconnect-manifest.json', // ✅ ЧИСТЫЙ URL
   STORAGE_KEYS: {
     USER_ADDRESS: 'soulmine_user_address',
     SOUL_AI: 'soulmine_soul_ai',
@@ -136,16 +136,14 @@ async function tryShare(shareText) {
   if (!shareText) return false;
 
   try {
-    // ✅ Telegram WebApp
     if (window.Telegram?.WebApp) {
-      window.Telegram.WebApp.openLink('https://t.me/LoveSoulMine_Bot'); // ✅ УБРАНЫ ПРОБЕЛЫ
+      window.Telegram.WebApp.openLink('https://t.me/LoveSoulMine_Bot'); // ✅ ЧИСТЫЙ URL
       showViralToast("🔗 Ссылка открыта в Telegram! Поделись и получи +5 $LOVE!");
       localStorage.setItem('shared_love', '1');
       updateQuestProgress("share_achievement");
       return true;
     }
 
-    // ✅ Современные браузеры
     if (navigator.share) {
       await navigator.share({ text: shareText });
       localStorage.setItem('shared_love', '1');
@@ -156,7 +154,6 @@ async function tryShare(shareText) {
     console.warn('⚠️ Share API failed:', err);
   }
 
-  // ✅ Fallback: копирование в буфер
   try {
     await navigator.clipboard.writeText(shareText);
     showViralToast("🔗 Ссылка скопирована! Поделись в соцсетях и получи +5 $LOVE!");
@@ -582,7 +579,7 @@ function showPartnerPreview() {
   const randomModel = models[Math.floor(Math.random() * models.length)];
   const img = document.getElementById('partner-preview');
   if (img) {
-    img.src = `https://soulmine-web.vercel.app/assets/models/${randomModel}.png`; // ✅ УБРАНЫ ПРОБЕЛЫ
+    img.src = `https://soulmine-web.vercel.app/assets/models/${randomModel}.png`; // ✅ ЧИСТЫЙ URL
     img.style.display = 'block';
   }
 }
