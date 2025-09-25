@@ -41,30 +41,6 @@ function initTelegramWebApp() {
 }
 
 /**
- * Заглушка для findRandomPartner — предотвращает зависание
- */
-window.findRandomPartner = function() {
-  if (!appState.userAddress) {
-    alert('Сначала подключите кошелек!');
-    return;
-  }
-  
-  const modal = document.getElementById('ai-params-modal');
-  if (modal) {
-    modal.style.display = 'flex';
-  } else {
-    alert('Функция поиска партнера временно недоступна. Попробуйте позже.');
-  }
-};
-
-/**
- * Заглушка для connectToSignalingServer — предотвращает ошибки
- */
-window.connectToSignalingServer = function() {
-  console.log('Сигнальный сервер будет подключен после загрузки video-call.js');
-};
-
-/**
  * Инициализация приложения — космический старт
  */
 window.addEventListener('load', async () => {
@@ -134,12 +110,6 @@ window.addEventListener('load', async () => {
     }
   }
 });
-
-/**
- * Заглушки для неопределённых функций
- */
-function loadCitizenNFT() { console.log('loadCitizenNFT not implemented'); }
-function loadProposals() { console.log('loadProposals not implemented'); }
 
 /**
  * Дебаг-кнопка (опционально)
