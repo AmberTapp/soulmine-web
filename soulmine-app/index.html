@@ -2,128 +2,163 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>SoulMine — Web3 Знакомства с $LOVE</title>
-  <link rel="stylesheet" href="./styles/main.css">
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <!-- TonConnect UI -->
-  <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
-  <!-- Canvas Confetti -->
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-  <!-- Face API -->
-  <script src="https://unpkg.com/face-api.js@0.22.2/dist/face-api.min.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SoulMine</title>
+  <link rel="manifest" href="/manifest.json">
+  <link rel="stylesheet" href="styles/main.css"> <!-- Если есть CSS, иначе удалите -->
 </head>
 <body>
   <!-- Splash Screen -->
   <div id="splash-screen" class="splash-screen">
     <div class="splash-content">
-      <div class="splash-logo">💜</div>
-      <h1 class="splash-title">SoulMine</h1>
-      <p class="splash-subtitle">Вселенная Любви на TON</p>
-      <p class="splash-desc">Где AI находит твою совместимость, а каждый звонок = $LOVE</p>
-      <div class="splash-loader">
-        <div class="loader-heart">💜</div>
-        <div class="loader-heart">💜</div>
-        <div class="loader-heart">💜</div>
+      <div class="splash-icon">💜</div>
+      <h1>SoulMine</h1>
+      <p>Вселенная Любви на TON</p>
+      <p>Где AI находит твою совместимость, а каждый звонок = $LOVE</p>
+      <div class="splash-emojis">💜 💜 💜</div>
+    </div>
+  </div>
+
+  <!-- Main Screen -->
+  <div id="main-screen" class="screen active">
+    <header class="app-header">
+      <h1>SoulMine</h1>
+      <p>Web3 Знакомства с майнингом $LOVE</p>
+    </header>
+    <main>
+      <div class="hero-section">
+        <p>AI находит твою идеальную пару. Каждое сообщение = крипта.</p>
+        <div class="feature">
+          <p>💞 Нулевое трение: подключил кошелек — получил $LOVE</p>
+        </div>
+      </div>
+      <div class="cta-section">
+        <button class="btn btn-primary" onclick="showScreen('swipe-screen')">💫 Найти пару</button>
+      </div>
+    </main>
+  </div>
+
+  <!-- Swipe Screen -->
+  <div id="swipe-screen" class="screen">
+    <header>❤️ Свайпы</header>
+    <div id="swipe-area" class="swipe-area">
+      <!-- Партнер превью -->
+      <img id="partner-preview" class="partner-preview" src="" alt="AI Партнер">
+      <div class="swipe-controls">
+        <button class="swipe-btn left" onclick="swipeLeft()">👎</button>
+        <button class="swipe-btn right" onclick="swipeRight()">❤️</button>
       </div>
     </div>
   </div>
 
-  <!-- Main Container -->
-  <div class="container">
-    <div class="hero-section">
-      <h1 class="app-logo">SoulMine</h1>
-      <p class="app-slogan">Web3 Знакомства с майнингом $LOVE</p>
-      <p class="app-desc">AI находит твою идеальную пару. Каждое сообщение = крипта.</p>
-      <div class="zero-friction-slogan">
-        💞 Нулевое трение: подключил кошелек — получил $LOVE
-      </div>
-
-      <!-- 🛠️ РАБОЧАЯ КНОПКА ПОДКЛЮЧЕНИЯ КОШЕЛЁКА -->
-      <div id="ton-connect-button-container" style="margin: 20px 0;"></div>
-
-      <!-- 🚀 КНОПКИ ССЫЛОК НА БОТА, КАНАЛ И СУППОРТ -->
-      <div style="display: flex; flex-direction: column; gap: 10px; margin: 20px 0;">
-        <button onclick="openInTelegram('https://t.me/LoveSoulMine_Bot')" 
-                class="btn btn-secondary" style="width: 100%; padding: 12px; font-size: 16px;">
-          🤖 Перейти в Telegram-бота
-        </button>
-        <button onclick="openInTelegram('https://t.me/SoulMineNews')" 
-                class="btn btn-secondary" style="width: 100%; padding: 12px; font-size: 16px;">
-          📣 Подписаться на канал
-        </button>
-        <button onclick="openInTelegram('https://t.me/SoulMineSupport')" 
-                class="btn btn-secondary" style="width: 100%; padding: 12px; font-size: 16px;">
-          ❓ Обратиться в суппорт
-        </button>
-      </div>
-
-      <!-- 🔗 РЕФЕРАЛЬНАЯ ССЫЛКА -->
-      <button onclick="copyReferralLink()" class="btn btn-secondary" style="width: 100%; margin: 20px 0; padding: 12px; font-size: 16px;">
-        🌐 Скопировать реферальную ссылку
-      </button>
+  <!-- Chat Screen -->
+  <div id="chat-screen" class="screen">
+    <header>💬 Чат</header>
+    <div id="messages" class="messages"></div>
+    <div class="chat-input">
+      <input type="text" id="chat-input" placeholder="Напиши сообщение...">
+      <button onclick="sendMessage()">Отправить</button>
     </div>
+  </div>
+
+  <!-- Profile Screen -->
+  <div id="profile" class="screen">
+    <header>👤 Профиль</header>
+    <div class="profile-info">
+      <div id="wallet-info" style="display: none;"></div>
+      <p id="profile-balance">0 $LOVE</p>
+      <div id="user-stats"></div>
+      <div id="nft-container-profile" class="nft-grid"></div>
+      <div id="couple-nft-section" style="display: none;">
+        <h3>Парные NFT</h3>
+        <div id="couple-nft-container-profile" class="nft-grid"></div>
+      </div>
+    </div>
+    <button onclick="showScreen('quests')">Квесты</button>
+  </div>
+
+  <!-- Quests Screen -->
+  <div id="quests" class="screen">
+    <header>🏆 Квесты</header>
+    <div id="quests-list" class="quests-list"></div>
+  </div>
+
+  <!-- History Screen -->
+  <div id="history" class="screen">
+    <header>📞 История</header>
+    <div id="call-history-list" class="history-list"></div>
+  </div>
+
+  <!-- DAO Screen -->
+  <div id="dao" class="screen">
+    <header>🏛️ DAO</header>
+    <div id="proposals-list" class="proposals-list"></div>
+    <div id="citizen-nft-section">
+      <h3>Ваш Citizen NFT</h3>
+      <div id="citizen-nft-display"></div>
+      <button onclick="upgradeCitizenLevel()">Повысить уровень</button>
+    </div>
+  </div>
+
+  <!-- Contacts Screen -->
+  <div id="contacts" class="screen">
+    <header>👥 Контакты</header>
+    <div id="contacts-list" class="contacts-list"></div>
+    <button onclick="inviteAllFriends()">Пригласить всех</button>
   </div>
 
   <!-- Navigation -->
-  <div class="nav">
-    <button class="nav-btn active" onclick="showScreen('main-screen')">
-      <div class="nav-icon">🏠</div>
-      <div>Главная</div>
-    </button>
-    <button class="nav-btn" onclick="showScreen('swipe-screen')">
-      <div class="nav-icon">❤️</div>
-      <div>Свайпы</div>
-    </button>
-    <button class="nav-btn" onclick="showScreen('profile')">
-      <div class="nav-icon">👤</div>
-      <div>Профиль</div>
-    </button>
-    <button class="nav-btn" onclick="showScreen('quests')">
-      <div class="nav-icon">🏆</div>
-      <div>Квесты</div>
-    </button>
-    <button class="nav-btn" onclick="showScreen('dao')">
-      <div class="nav-icon">🏛️</div>
-      <div>DAO</div>
-    </button>
+  <nav class="bottom-nav">
+    <button class="nav-btn active" onclick="showScreen('main-screen')">🏠</button>
+    <button class="nav-btn" onclick="showScreen('swipe-screen')">❤️</button>
+    <button class="nav-btn" onclick="showScreen('chat-screen')">💬</button>
+    <button class="nav-btn" onclick="showScreen('profile')">👤</button>
+    <button class="nav-btn" onclick="showScreen('quests')">🏆</button>
+    <button class="nav-btn" onclick="showScreen('history')">📞</button>
+    <button class="nav-btn" onclick="showScreen('dao')">🏛️</button>
+    <button class="nav-btn" onclick="showScreen('contacts')">👥</button>
+  </nav>
+
+  <!-- Modals -->
+  <div id="ai-params-modal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <h2>Настройки AI</h2>
+      <label>Возраст: <input id="age-range" type="range" min="18" max="50" value="25"></label>
+      <label>Цель: <select id="goal">
+        <option>Знакомства</option>
+        <option>Дружба</option>
+        <option>Любовь</option>
+      </select></label>
+      <div id="interests-container"></div>
+      <button onclick="saveAIParams()">Найти</button>
+      <button onclick="document.getElementById('ai-params-modal').style.display='none'">Отмена</button>
+    </div>
   </div>
 
-  <!-- Scripts -->
-  <script src="./scripts/utils.js" type="module"></script>
-  <script src="./scripts/ton.js" type="module"></script>
-  <script src="./scripts/main.js" type="module"></script>
-  <script src="./scripts/video-call.js" type="module"></script>
-  <script src="./scripts/dao.js" type="module"></script>
-  <script src="./scripts/contacts.js" type="module"></script>
+  <div id="searching-modal" class="modal" style="display: none;">
+    <div class="modal-content">Поиск партнера... ⏳</div>
+  </div>
 
-  <script>
-    // Копирование реферальной ссылки
-    function copyReferralLink() {
-      if (!appState.userAddress) {
-        showViralToast("❌ Сначала подключите кошелёк!");
-        return;
-      }
-      const refLink = `https://t.me/LoveSoulMine_Bot?start=ref_${encodeURIComponent(appState.userAddress)}`;
-      navigator.clipboard.writeText(refLink)
-        .then(() => showViralToast("🔗 Ссылка скопирована! Пригласите друзей и получите NFT!"))
-        .catch(err => showViralToast("❌ Не удалось скопировать ссылку"));
-    }
+  <div id="nft-modal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <div id="nft-image"></div>
+      <h2>NFT: <span id="nft-name"></span></h2>
+      <button onclick="closeModal()">Закрыть</button>
+    </div>
+  </div>
 
-    // Открытие ссылки в Telegram
-    function openInTelegram(url) {
-      if (window.Telegram?.WebApp?.openLink) {
-        window.Telegram.WebApp.openLink(url);
-      } else {
-        window.open(url, '_blank');
-      }
-    }
+  <!-- AR Effects -->
+  <div id="ar-effects" class="ar-effects"></div>
 
-    // Загружаем Telegram Web App API
-    if (window.Telegram && window.Telegram.WebApp) {
-      window.Telegram.WebApp.ready();
-      window.Telegram.WebApp.expand();
-    }
-  </script>
+  <!-- TonConnect Button -->
+  <div id="ton-connect-button-container"></div>
+
+  <!-- Scripts: Загружаем как модули -->
+  <script type="module" src="scripts/utils.js"></script>
+  <script type="module" src="scripts/ton.js"></script>
+  <script type="module" src="scripts/main.js"></script>
+  <script type="module" src="scripts/video-call.js"></script>
+  <script type="module" src="scripts/dao.js"></script>
+  <script type="module" src="scripts/contacts.js"></script>
 </body>
 </html>
